@@ -1,0 +1,3854 @@
+{
+  "id": "9e41b8c0-77d2-4a16-ae93-18c5f0b2d6a7",
+  "revision": 0,
+  "last_node_id": 1574,
+  "last_link_id": 23001,
+  "nodes": [
+    {
+      "id": 8,
+      "type": "Note",
+      "pos": [
+        -1126.9716932215752,
+        570.5326847567595
+      ],
+      "size": [
+        470,
+        720
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "8.0.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "inputs": [],
+      "outputs": [],
+      "widgets_values": [
+        "CUPID3D — ADVANCED SCENE INTEGRATION\n\nReconstructs the subject in 3D, puts it back into the photo it came from, and then has Klein 3 blend that render into the plate so it reads as a photograph rather than a paste-up.\n\nNEEDS, BEYOND THIS PACK\n- ComfyUI-NKD-Basic-Tools — NKD Loader, NKD Mask Picker\n- ComfyUI-NKD-Klein-Tools — Klein Pre/Postsampling, Box Detections, Reference Control\n- ComfyUI-NKD-VFX-Tools — NKD Preview 3D\n- ComfyUI-NKD-Preview-Tools — Popup Preview\n- ComfyUI-NKD-Notes — the hint pinned to Reference Control\n- RES4LYF — ClownsharKSampler Beta\n- basic_data_handling — IfElse\nModels: a SAM checkpoint for the Mask Picker, and the \"Klein 3 Distilled\" bundle inside NKD Loader.\n\nPICK THE SUBJECT FIRST\nNKD Mask Picker is where this starts: click the subject in the image and it returns one mask, which does three jobs — it is the subject for Cupid3D, the region for the removal edit, and the box for the detections. Nothing else needs touching to change subject.\n\nTWO KLEIN PASSES\n1. REMOVE — the same mask drives a \"remove the object\" edit that clears the subject off the photo and leaves a clean plate. IfElse picks that plate or the untouched photo, and whatever it picks also sets the viewer's size through Get Image Size, so camera and plate cannot disagree.\n\n2. BLEND — NKD Preview 3D renders the mesh over that plate through the predicted camera. Its render goes in as <Picture 1> and the untouched photo as <Picture 2>. The prompt is built by String Concatenate: describe the scene in the string node and the blend instruction is appended to it. Reference Control holds reference 1 — ref_1, the original photo — and its weight is the dial for how hard the blend pulls back towards the photo.\n\nThe result lands in Popup Preview with the original wired as its reference, so before and after sit side by side.\n\nplace_on_ground rests the mesh on y=0; crop_to_content is off here, so the pose is solved on the full frame."
+      ],
+      "widgets_values_named": {
+        "text": "CUPID3D — one image in, a 3D mesh plus the camera that shot it.\n\nFirst run downloads ~7 GB of weights from hbb1/Cupid, then takes a minute or so. Peak VRAM is about 11.5 GB.\n\nWHY THE EXTRA NODES\n\n- InvertMask: LoadImage's MASK is 1 - alpha, so it marks the background. Cupid3D wants the subject. Segmentation nodes (RMBG, SAM) already give the subject, so they wire straight in with no InvertMask. With no mask at all, rembg removes the background itself.\n\n- GetImageSize -> RenderMesh width/height: Cupid predicts an off-centre principal point, and LOAD3D_CAMERA has no field for one, so the node pads the frame until that point is centred. 'camera_frame' is that padded frame, and it is what the camera describes. Render at its size and composite against it, not against the original image.\n\ncamera_info is a plain LOAD3D_CAMERA, so it also drives Preview3D, Load3D and the NKD VFX Tools camera nodes.\n\nThe mesh carries vertex colours, not a baked texture. For UVs and a texture, run it through UnwrapMesh and BakeTextureFromViews."
+      },
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [
+        -1126.9716932215752,
+        120.53268475675954
+      ],
+      "size": [
+        370,
+        326
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "LoadImage",
+        "cnr_id": "comfy-core",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "8.0.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "choose file to upload",
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            32,
+            22951,
+            22962,
+            22992,
+            22994,
+            22995
+          ]
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "widgets_values": [
+        "5f0ee97824e1dc1b256574912ce8fea1.jpg",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "5f0ee97824e1dc1b256574912ce8fea1.jpg",
+        "upload": "image"
+      }
+    },
+    {
+      "id": 6,
+      "type": "PreviewImage",
+      "pos": [
+        2466.661495243421,
+        80.0338478483789
+      ],
+      "size": [
+        435.1741112953366,
+        26
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "PreviewImage",
+        "cnr_id": "comfy-core",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "8.0.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 39
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            22993
+          ]
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "PreviewImage",
+      "pos": [
+        2460,
+        395
+      ],
+      "size": [
+        435.1741112953366,
+        26
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "PreviewImage",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "8.0.1",
+          "input_ue_unconnectable": {}
+        },
+        "cnr_id": "comfy-core"
+      },
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 40
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "Cupid3DReconstruct",
+      "pos": [
+        989.682540097581,
+        120.53268904084564
+      ],
+      "size": [
+        330,
+        198
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "Cupid3DReconstruct",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "8.0.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 32
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg_strength",
+          "name": "cfg_strength",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "crop_to_content",
+          "name": "crop_to_content",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "crop_to_content"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "place_on_ground",
+          "name": "place_on_ground",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "place_on_ground"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": 22997
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "mesh",
+          "name": "mesh",
+          "type": "MESH",
+          "links": [
+            34
+          ]
+        },
+        {
+          "localized_name": "camera_info",
+          "name": "camera_info",
+          "type": "LOAD3D_CAMERA",
+          "links": [
+            37
+          ]
+        }
+      ],
+      "widgets_values": [
+        42,
+        "fixed",
+        25,
+        5,
+        false,
+        true
+      ],
+      "widgets_values_named": {
+        "seed": 42,
+        "control_after_generate": "fixed",
+        "steps": 25,
+        "cfg_strength": 5,
+        "crop_to_content": false,
+        "place_on_ground": true
+      }
+    },
+    {
+      "id": 15,
+      "type": "GetImageSize",
+      "pos": [
+        1417.8276894111698,
+        331.9922512541883
+      ],
+      "size": [
+        270,
+        66
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 16,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "GetImageSize",
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 22964
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "width",
+          "name": "width",
+          "type": "INT",
+          "links": [
+            35
+          ]
+        },
+        {
+          "localized_name": "height",
+          "name": "height",
+          "type": "INT",
+          "links": [
+            36
+          ]
+        },
+        {
+          "localized_name": "batch_size",
+          "name": "batch_size",
+          "type": "INT",
+          "links": null
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "type": "NKDPreview3D",
+      "pos": [
+        1742.665117501559,
+        80.0535514667821
+      ],
+      "size": [
+        697.334882498441,
+        1581
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "NKDPreview3D",
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "model_file",
+          "name": "model_file",
+          "type": "STRING,MESH,TRIMESH,FILE_3D_GLB,FILE_3D_GLTF,FILE_3D,FILE_3D_SPLAT_ANY,FILE_3D_PLY,FILE_3D_SPLAT,FILE_3D_SPZ,FILE_3D_KSPLAT",
+          "widget": {
+            "name": "model_file"
+          },
+          "link": 34
+        },
+        {
+          "localized_name": "width",
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 35
+        },
+        {
+          "localized_name": "height",
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 36
+        },
+        {
+          "localized_name": "camera_info",
+          "name": "camera_info",
+          "shape": 7,
+          "type": "LOAD3D_CAMERA",
+          "link": 37
+        },
+        {
+          "localized_name": "bg_image",
+          "name": "bg_image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 22963
+        },
+        {
+          "localized_name": "model_3d_info",
+          "name": "model_3d_info",
+          "shape": 7,
+          "type": "LOAD3D_MODEL_INFO",
+          "link": null
+        },
+        {
+          "localized_name": "mask3d",
+          "name": "mask3d",
+          "shape": 7,
+          "type": "NKD_MASK3D",
+          "link": null
+        },
+        {
+          "localized_name": "scene_depth",
+          "name": "scene_depth",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            39
+          ]
+        },
+        {
+          "localized_name": "object",
+          "name": "object",
+          "type": "IMAGE",
+          "links": [
+            40
+          ]
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "links": null
+        },
+        {
+          "localized_name": "depth",
+          "name": "depth",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "camera_info",
+          "name": "camera_info",
+          "type": "LOAD3D_CAMERA",
+          "links": null
+        },
+        {
+          "localized_name": "paint_mask",
+          "name": "paint_mask",
+          "type": "MASK",
+          "links": null
+        },
+        {
+          "localized_name": "mask3d",
+          "name": "mask3d",
+          "type": "NKD_MASK3D",
+          "links": null
+        },
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "FILE_3D",
+          "links": null
+        },
+        {
+          "localized_name": "model_3d_info",
+          "name": "model_3d_info",
+          "type": "LOAD3D_MODEL_INFO",
+          "links": null
+        }
+      ],
+      "widgets_values": [
+        "",
+        false,
+        1,
+        30,
+        "inverse (disparity)",
+        832,
+        1248,
+        "",
+        "{\"showGrid\":true,\"floorClip\":true,\"pins\":[],\"pinLens\":true,\"ghost\":{\"on\":true,\"opacity\":0.35,\"detail\":0.5,\"back\":true},\"camLocked\":true,\"camera\":{\"position\":{\"x\":0.8768760795545815,\"y\":0.7463356316119073,\"z\":1.2633162190045797},\"target\":{\"x\":0.01720369168790925,\"y\":0.3635964350747134,\"z\":-0.05934148197221067},\"quaternion\":{\"x\":-0.1121016623863754,\"y\":0.28288432785387957,\"z\":0.03958887186115401,\"w\":0.9517575298202958},\"fov\":44.20747689420892,\"zoom\":1,\"cameraType\":\"perspective\",\"aspect\":0.6666666666666666,\"near\":0.01,\"far\":10000},\"roll\":-0.7036475679984023,\"camSlots\":[{\"cam\":{\"position\":{\"x\":0.8768760795545815,\"y\":0.7463356316119073,\"z\":1.2633162190045797},\"target\":{\"x\":0.01720369168790925,\"y\":0.3635964350747134,\"z\":-0.05934148197221067},\"quaternion\":{\"x\":-0.1121016623863754,\"y\":0.28288432785387957,\"z\":0.03958887186115401,\"w\":0.9517575298202958},\"fov\":44.20747689420892,\"zoom\":1,\"cameraType\":\"perspective\",\"aspect\":0.6666666666666666,\"near\":0.01,\"far\":10000},\"roll\":-0.7036475679984023},{\"cam\":{\"position\":{\"x\":0.3514184750115243,\"y\":2.6270140519147342,\"z\":0.8941471289201498},\"target\":{\"x\":-0.003598002778089693,\"y\":0.27736808167704163,\"z\":-0.007259813184326003},\"quaternion\":{\"x\":-0.5469992392091632,\"y\":0.15315609301486963,\"z\":0.10100961907105203,\"w\":0.8167815499459683},\"fov\":26.300629022924465,\"zoom\":1,\"cameraType\":\"perspective\",\"aspect\":0.8285714285714286,\"near\":0.01,\"far\":10000},\"roll\":0.38283215145307836},null,null],\"bgColor\":\"#111318\",\"showBg\":true,\"env\":0.3,\"lightAz\":98,\"lightEl\":56,\"lightInt\":1.45,\"shadows\":false,\"shadowSoft\":3,\"shadowStr\":0.5,\"contact\":false,\"contactStr\":0.8,\"contactBlur\":1.5,\"contactSlab\":0.05,\"occlude\":false,\"occFrom\":0.5,\"occTo\":1,\"depthView\":false,\"showRange\":true,\"depthManual\":false,\"autoZ\":false,\"nearOff\":0,\"farOff\":0,\"dNear\":1,\"dFar\":30,\"depthInvert\":false,\"depthInverseSpace\":true,\"unbake\":false,\"smooth\":0,\"autoSmooth\":true,\"lights\":[],\"object\":{\"pos\":{\"x\":0,\"y\":0,\"z\":0},\"rot\":{\"x\":0,\"y\":0,\"z\":0},\"scale\":1,\"pivot\":\"custom\",\"pivotC\":{\"x\":0.0018888812187152128,\"y\":0.17689802659909673,\"z\":0.005852357413154197},\"gizmoSpace\":\"world\",\"mirrorGuide\":\"none\",\"crop\":{\"on\":false,\"fitted\":false,\"pos\":[0,0,0],\"quat\":[0,0,0,1],\"half\":[1,1,1]}}}"
+      ],
+      "widgets_values_named": {
+        "model_file": "",
+        "scene_depth_invert": false,
+        "scene_depth_near": 1,
+        "scene_depth_far": 30,
+        "scene_depth_space": "inverse (disparity)",
+        "width": 832,
+        "height": 1248,
+        "viewport": "",
+        "nkd_p3d_view": "{\"showGrid\":true,\"floorClip\":true,\"pins\":[],\"pinLens\":true,\"ghost\":{\"on\":true,\"opacity\":0.35,\"detail\":0.5,\"back\":true},\"camLocked\":true,\"camera\":{\"position\":{\"x\":0.8768760795545815,\"y\":0.7463356316119073,\"z\":1.2633162190045797},\"target\":{\"x\":0.01720369168790925,\"y\":0.3635964350747134,\"z\":-0.05934148197221067},\"quaternion\":{\"x\":-0.1121016623863754,\"y\":0.28288432785387957,\"z\":0.03958887186115401,\"w\":0.9517575298202958},\"fov\":44.20747689420892,\"zoom\":1,\"cameraType\":\"perspective\",\"aspect\":0.6666666666666666,\"near\":0.01,\"far\":10000},\"roll\":-0.7036475679984023,\"camSlots\":[{\"cam\":{\"position\":{\"x\":0.8768760795545815,\"y\":0.7463356316119073,\"z\":1.2633162190045797},\"target\":{\"x\":0.01720369168790925,\"y\":0.3635964350747134,\"z\":-0.05934148197221067},\"quaternion\":{\"x\":-0.1121016623863754,\"y\":0.28288432785387957,\"z\":0.03958887186115401,\"w\":0.9517575298202958},\"fov\":44.20747689420892,\"zoom\":1,\"cameraType\":\"perspective\",\"aspect\":0.6666666666666666,\"near\":0.01,\"far\":10000},\"roll\":-0.7036475679984023},{\"cam\":{\"position\":{\"x\":0.3514184750115243,\"y\":2.6270140519147342,\"z\":0.8941471289201498},\"target\":{\"x\":-0.003598002778089693,\"y\":0.27736808167704163,\"z\":-0.007259813184326003},\"quaternion\":{\"x\":-0.5469992392091632,\"y\":0.15315609301486963,\"z\":0.10100961907105203,\"w\":0.8167815499459683},\"fov\":26.300629022924465,\"zoom\":1,\"cameraType\":\"perspective\",\"aspect\":0.8285714285714286,\"near\":0.01,\"far\":10000},\"roll\":0.38283215145307836},null,null],\"bgColor\":\"#111318\",\"showBg\":true,\"env\":0.3,\"lightAz\":98,\"lightEl\":56,\"lightInt\":1.45,\"shadows\":false,\"shadowSoft\":3,\"shadowStr\":0.5,\"contact\":false,\"contactStr\":0.8,\"contactBlur\":1.5,\"contactSlab\":0.05,\"occlude\":false,\"occFrom\":0.5,\"occTo\":1,\"depthView\":false,\"showRange\":true,\"depthManual\":false,\"autoZ\":false,\"nearOff\":0,\"farOff\":0,\"dNear\":1,\"dFar\":30,\"depthInvert\":false,\"depthInverseSpace\":true,\"unbake\":false,\"smooth\":0,\"autoSmooth\":true,\"lights\":[],\"object\":{\"pos\":{\"x\":0,\"y\":0,\"z\":0},\"rot\":{\"x\":0,\"y\":0,\"z\":0},\"scale\":1,\"pivot\":\"custom\",\"pivotC\":{\"x\":0.0018888812187152128,\"y\":0.17689802659909673,\"z\":0.005852357413154197},\"gizmoSpace\":\"world\",\"mirrorGuide\":\"none\",\"crop\":{\"on\":false,\"fitted\":false,\"pos\":[0,0,0],\"quat\":[0,0,0,1],\"half\":[1,1,1]}}}"
+      }
+    },
+    {
+      "id": 1552,
+      "type": "VAEDecode",
+      "pos": [
+        836.2033140459838,
+        480.94039740312985
+      ],
+      "size": [
+        225,
+        50
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 12,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "VAEDecode",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        },
+        "cnr_id": "comfy-core",
+        "ver": "0.19.3",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "inputs": [
+        {
+          "localized_name": "samples",
+          "name": "samples",
+          "type": "LATENT",
+          "link": 22939
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 22948
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            22941
+          ]
+        }
+      ]
+    },
+    {
+      "id": 1553,
+      "type": "NKDKleinPostsampling",
+      "pos": [
+        836.2033140459838,
+        510.94039740312985
+      ],
+      "size": [
+        243.822265625,
+        174
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "NKDKleinPostsampling",
+        "nkdSchema": 1,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        },
+        "cnr_id": "comfyui-nkd-klein-tools",
+        "ver": "047a9e69e0b106dff3be4c40c1ebb33017c8b90e",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 22941
+        },
+        {
+          "localized_name": "bundle",
+          "name": "bundle",
+          "type": "NKD_KLEIN_BUNDLE",
+          "link": 22942
+        },
+        {
+          "localized_name": "Uncrop Feather",
+          "name": "uncrop_feather",
+          "type": "INT",
+          "widget": {
+            "name": "uncrop_feather"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Match Original Colors",
+          "name": "match_original_colors",
+          "type": "FLOAT",
+          "widget": {
+            "name": "match_original_colors"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Seamless Edges",
+          "name": "seamless_edges",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "seamless_edges"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Auto-Detect Edit Region",
+          "name": "auto_detect_edit_region",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "auto_detect_edit_region"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Edge Softness",
+          "name": "edge_softness",
+          "type": "FLOAT",
+          "widget": {
+            "name": "edge_softness"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Region Padding",
+          "name": "region_padding",
+          "type": "FLOAT",
+          "widget": {
+            "name": "region_padding"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Fill Inner Gaps",
+          "name": "fill_inner_gaps",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "fill_inner_gaps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Remove Specks",
+          "name": "remove_specks",
+          "type": "FLOAT",
+          "widget": {
+            "name": "remove_specks"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Extend To Borders",
+          "name": "extend_to_borders",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "extend_to_borders"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Transparent Background",
+          "name": "transparent_background",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "transparent_background"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            22955
+          ]
+        },
+        {
+          "localized_name": "debug_difference",
+          "name": "debug_difference",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "widgets_values": [
+        10,
+        0,
+        false,
+        false,
+        2,
+        0,
+        true,
+        false,
+        true,
+        false
+      ],
+      "widgets_values_named": {
+        "uncrop_feather": 10,
+        "match_original_colors": 0,
+        "seamless_edges": false,
+        "auto_detect_edit_region": false,
+        "edge_softness": 2,
+        "region_padding": 0,
+        "fill_inner_gaps": true,
+        "remove_specks": false,
+        "extend_to_borders": true,
+        "transparent_background": false
+      }
+    },
+    {
+      "id": 1554,
+      "type": "ClownsharKSampler_Beta",
+      "pos": [
+        576.2033140459838,
+        450.94039740312985
+      ],
+      "size": [
+        240.46636915695308,
+        782.6995537354296
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "ClownsharKSampler_Beta",
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        },
+        "aux_id": "drozbay/RES4LYF",
+        "ver": "3802390deff0d508e56a72dd21be4be99a52ff74"
+      },
+      "inputs": [
+        {
+          "localized_name": "eta",
+          "name": "eta",
+          "type": "FLOAT",
+          "widget": {
+            "name": "eta"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sampler_name",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scheduler",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps_to_run",
+          "name": "steps_to_run",
+          "type": "INT",
+          "widget": {
+            "name": "steps_to_run"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "denoise",
+          "name": "denoise",
+          "type": "FLOAT",
+          "widget": {
+            "name": "denoise"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sampler_mode",
+          "name": "sampler_mode",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "bongmath",
+          "name": "bongmath",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "bongmath"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "model",
+          "name": "model",
+          "shape": 7,
+          "type": "MODEL",
+          "link": 22959
+        },
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": 22956
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": 22957
+        },
+        {
+          "localized_name": "latent_image",
+          "name": "latent_image",
+          "shape": 7,
+          "type": "LATENT",
+          "link": 22958
+        },
+        {
+          "localized_name": "sigmas",
+          "name": "sigmas",
+          "shape": 7,
+          "type": "SIGMAS",
+          "link": null
+        },
+        {
+          "localized_name": "guides",
+          "name": "guides",
+          "shape": 7,
+          "type": "GUIDES",
+          "link": null
+        },
+        {
+          "name": "options_group",
+          "type": "COMFY_AUTOGROW_V3",
+          "link": null
+        },
+        {
+          "localized_name": "options0",
+          "name": "options_group.options0",
+          "shape": 7,
+          "type": "OPTIONS",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "output",
+          "name": "output",
+          "type": "LATENT",
+          "links": [
+            22939
+          ]
+        },
+        {
+          "localized_name": "denoised",
+          "name": "denoised",
+          "type": "LATENT",
+          "links": []
+        },
+        {
+          "localized_name": "options",
+          "name": "options",
+          "type": "OPTIONS",
+          "links": []
+        }
+      ],
+      "widgets_values": [
+        0.1,
+        "linear/euler",
+        "beta57",
+        16,
+        -1,
+        1,
+        1,
+        1,
+        "fixed",
+        "standard",
+        true
+      ],
+      "widgets_values_named": {
+        "eta": 0.1,
+        "sampler_name": "linear/euler",
+        "scheduler": "beta57",
+        "steps": 16,
+        "steps_to_run": -1,
+        "denoise": 1,
+        "cfg": 1,
+        "seed": 1,
+        "control_after_generate": "fixed",
+        "sampler_mode": "standard",
+        "bongmath": true
+      }
+    },
+    {
+      "id": 1555,
+      "type": "NKDKleinPresampling",
+      "pos": [
+        331.20331404598375,
+        450.94039740312985
+      ],
+      "size": [
+        211.5435546875,
+        642
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "NKDKleinPresampling",
+        "nkdSchema": 2,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        },
+        "cnr_id": "comfyui-nkd-klein-tools",
+        "ver": "e02f203d42acad2b28e30194537124f8329ad9e7",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 22946
+        },
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 22947
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 22949
+        },
+        {
+          "localized_name": "Model",
+          "name": "model_family",
+          "type": "COMBO",
+          "widget": {
+            "name": "model_family"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "type": "STRING",
+          "widget": {
+            "name": "positive"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "type": "STRING",
+          "widget": {
+            "name": "negative"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Pin Model",
+          "name": "pin_model",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "pin_model"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Resize",
+          "name": "resize",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "resize"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "COMBO",
+          "widget": {
+            "name": "aspect_ratio"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Megapixels",
+          "name": "megapixels",
+          "type": "FLOAT",
+          "widget": {
+            "name": "megapixels"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Custom Width",
+          "name": "custom_width",
+          "type": "INT",
+          "widget": {
+            "name": "custom_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Custom Height",
+          "name": "custom_height",
+          "type": "INT",
+          "widget": {
+            "name": "custom_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Image Fit",
+          "name": "image_fit",
+          "type": "COMBO",
+          "widget": {
+            "name": "image_fit"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Outpaint Fill",
+          "name": "outpaint_fill",
+          "type": "COMBO",
+          "widget": {
+            "name": "outpaint_fill"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Slide",
+          "name": "slide",
+          "type": "FLOAT",
+          "widget": {
+            "name": "slide"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Bypass Reference",
+          "name": "bypass_reference",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "bypass_reference"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Reference Strength",
+          "name": "reference_strength",
+          "type": "INT",
+          "widget": {
+            "name": "reference_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Mask Expand",
+          "name": "mask_expand",
+          "type": "INT",
+          "widget": {
+            "name": "mask_expand"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Mask Blur",
+          "name": "mask_blur",
+          "type": "INT",
+          "widget": {
+            "name": "mask_blur"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Inpaint Blend",
+          "name": "inpaint_blend",
+          "type": "FLOAT",
+          "widget": {
+            "name": "inpaint_blend"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Use Detailing",
+          "name": "use_detailing",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "use_detailing"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Detail Padding",
+          "name": "detail_padding",
+          "type": "INT",
+          "widget": {
+            "name": "detail_padding"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Upsample Prompt",
+          "name": "upsample_prompt",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "upsample_prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Upsample Style",
+          "name": "upsample_style",
+          "type": "COMBO",
+          "widget": {
+            "name": "upsample_style"
+          },
+          "link": null
+        },
+        {
+          "name": "ref_images",
+          "type": "COMFY_AUTOGROW_V3",
+          "link": null
+        },
+        {
+          "label": "ref_0",
+          "localized_name": "ref_0",
+          "name": "ref_images.ref_0",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 22951
+        },
+        {
+          "label": "ref_1",
+          "localized_name": "ref_1",
+          "name": "ref_images.ref_1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": 22999
+        },
+        {
+          "localized_name": "boxes",
+          "name": "boxes",
+          "shape": 7,
+          "type": "NKD_KLEIN_BOXES",
+          "link": 22953
+        },
+        {
+          "localized_name": "upsampler",
+          "name": "upsampler",
+          "shape": 7,
+          "type": "CLIP",
+          "link": 22950
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            22959
+          ]
+        },
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            22956
+          ]
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": [
+            22957
+          ]
+        },
+        {
+          "localized_name": "latent",
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            22958
+          ]
+        },
+        {
+          "localized_name": "bundle",
+          "name": "bundle",
+          "type": "NKD_KLEIN_BUNDLE",
+          "links": [
+            22942
+          ]
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "links": []
+        },
+        {
+          "localized_name": "ref_0",
+          "name": "ref_0",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "widgets_values": [
+        "Klein 3",
+        "remove the object or subject",
+        "",
+        "",
+        false,
+        true,
+        "As Reference",
+        1,
+        1024,
+        1024,
+        "Native",
+        "Gray",
+        0.5,
+        false,
+        0,
+        60,
+        30,
+        1,
+        false,
+        50,
+        true,
+        "Faithful",
+        ""
+      ],
+      "widgets_values_named": {
+        "model_family": "Klein 3",
+        "positive": "remove the object or subject",
+        "negative": "",
+        "boxes_json": "",
+        "pin_model": false,
+        "resize": true,
+        "aspect_ratio": "As Reference",
+        "megapixels": 1,
+        "custom_width": 1024,
+        "custom_height": 1024,
+        "image_fit": "Native",
+        "outpaint_fill": "Gray",
+        "slide": 0.5,
+        "bypass_reference": false,
+        "reference_strength": 0,
+        "mask_expand": 60,
+        "mask_blur": 30,
+        "inpaint_blend": 1,
+        "use_detailing": false,
+        "detail_padding": 50,
+        "upsample_prompt": true,
+        "upsample_style": "Faithful",
+        "nkd_resolution": ""
+      }
+    },
+    {
+      "id": 1557,
+      "type": "NKDLoader",
+      "pos": [
+        21.203314045983753,
+        450.997032558228
+      ],
+      "size": [
+        289.3921875,
+        118
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "NKDLoader",
+        "nkdSchema": 1,
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "label": "model",
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            22946,
+            22976
+          ]
+        },
+        {
+          "label": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "links": [
+            22947,
+            22977
+          ]
+        },
+        {
+          "label": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "links": [
+            22948,
+            22949,
+            22978,
+            22985
+          ]
+        },
+        {
+          "label": "upsampler",
+          "name": "upsampler",
+          "type": "CLIP",
+          "links": [
+            22950,
+            22979
+          ]
+        }
+      ],
+      "title": "😺NKD Loader · Klein 3 Distilled",
+      "widgets_values": [
+        "{\"name\":\"Klein 3 Distilled\",\"nodes\":[{\"class_type\":\"CLIPLoader\",\"inputs\":{\"clip_name\":\"qwen3vl_4b_int8_convrot.safetensors\",\"type\":\"flux3\",\"device\":\"default\"}},{\"class_type\":\"UNETLoader\",\"inputs\":{\"unet_name\":\"flux3-klein\\\\flux3-image-klein-int8-convrot.safetensors\",\"weight_dtype\":\"default\"}},{\"class_type\":\"CLIPLoader\",\"inputs\":{\"clip_name\":\"qwen3.5_9b_flux3_prompt_upsampler_int8_convrot.safetensors\",\"type\":\"flux3\",\"device\":\"default\"}},{\"class_type\":\"VAELoader\",\"inputs\":{\"vae_name\":\"flux2-vae.safetensors\"}}],\"outputs\":[{\"node\":1,\"out\":0,\"type\":\"MODEL\",\"label\":\"model\"},{\"node\":0,\"out\":0,\"type\":\"CLIP\",\"label\":\"clip\"},{\"node\":3,\"out\":0,\"type\":\"VAE\",\"label\":\"vae\"},{\"node\":2,\"out\":0,\"type\":\"CLIP\",\"label\":\"upsampler\"}]}",
+        "Klein 3 Distilled"
+      ],
+      "widgets_values_named": {
+        "recipe": "{\"name\":\"Klein 3 Distilled\",\"nodes\":[{\"class_type\":\"CLIPLoader\",\"inputs\":{\"clip_name\":\"qwen3vl_4b_int8_convrot.safetensors\",\"type\":\"flux3\",\"device\":\"default\"}},{\"class_type\":\"UNETLoader\",\"inputs\":{\"unet_name\":\"flux3-klein\\\\flux3-image-klein-int8-convrot.safetensors\",\"weight_dtype\":\"default\"}},{\"class_type\":\"CLIPLoader\",\"inputs\":{\"clip_name\":\"qwen3.5_9b_flux3_prompt_upsampler_int8_convrot.safetensors\",\"type\":\"flux3\",\"device\":\"default\"}},{\"class_type\":\"VAELoader\",\"inputs\":{\"vae_name\":\"flux2-vae.safetensors\"}}],\"outputs\":[{\"node\":1,\"out\":0,\"type\":\"MODEL\",\"label\":\"model\"},{\"node\":0,\"out\":0,\"type\":\"CLIP\",\"label\":\"clip\"},{\"node\":3,\"out\":0,\"type\":\"VAE\",\"label\":\"vae\"},{\"node\":2,\"out\":0,\"type\":\"CLIP\",\"label\":\"upsampler\"}]}",
+        "preset": "Klein 3 Distilled"
+      }
+    },
+    {
+      "id": 1558,
+      "type": "NKDKleinBoxDetections",
+      "pos": [
+        21.811126545983754,
+        612.997032558228
+      ],
+      "size": [
+        289.3921875,
+        224
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "NKDKleinBoxDetections",
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "detections",
+          "name": "detections",
+          "type": "MASK,BOUNDING_BOX,SEGS",
+          "link": 22998
+        },
+        {
+          "localized_name": "action",
+          "name": "action",
+          "type": "COMBO",
+          "widget": {
+            "name": "action"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "tag",
+          "name": "tag",
+          "type": "STRING",
+          "widget": {
+            "name": "tag"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "desc",
+          "name": "desc",
+          "type": "STRING",
+          "widget": {
+            "name": "desc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "boxes",
+          "name": "boxes",
+          "shape": 7,
+          "type": "NKD_KLEIN_BOXES",
+          "link": null
+        },
+        {
+          "localized_name": "reference",
+          "name": "reference",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "reference"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "boxes",
+          "name": "boxes",
+          "type": "NKD_KLEIN_BOXES",
+          "links": [
+            22953
+          ]
+        }
+      ],
+      "widgets_values": [
+        "remove",
+        "",
+        "",
+        0,
+        ""
+      ],
+      "widgets_values_named": {
+        "action": "remove",
+        "tag": "",
+        "desc": "",
+        "reference": 0,
+        "nkd_preview": ""
+      }
+    },
+    {
+      "id": 1559,
+      "type": "PreviewImage",
+      "pos": [
+        1101.2033140459837,
+        510.94039740312985
+      ],
+      "size": [
+        225,
+        329.7606512581404
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "PreviewImage",
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 22955
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            22961
+          ]
+        }
+      ]
+    },
+    {
+      "id": 1560,
+      "type": "Basic data handling: IfElse",
+      "pos": [
+        1417.8276894111698,
+        99.99997417010727
+      ],
+      "size": [
+        270,
+        78
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "Basic data handling: IfElse",
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "condition",
+          "name": "condition",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "condition"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "if_true",
+          "name": "if_true",
+          "type": "*",
+          "link": 22961
+        },
+        {
+          "localized_name": "if_false",
+          "name": "if_false",
+          "type": "*",
+          "link": 22962
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "result",
+          "name": "result",
+          "type": "*",
+          "links": [
+            22963,
+            22964
+          ]
+        }
+      ],
+      "title": "Remove Object from Image",
+      "widgets_values": [
+        true
+      ],
+      "widgets_values_named": {
+        "condition": true
+      },
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 1563,
+      "type": "NKDKleinPresampling",
+      "pos": [
+        3315,
+        80
+      ],
+      "size": [
+        211.5435546875,
+        566
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "NKDKleinPresampling",
+        "nkdSchema": 2,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        },
+        "cnr_id": "comfyui-nkd-klein-tools",
+        "ver": "e02f203d42acad2b28e30194537124f8329ad9e7",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "widgetHeights": {
+          "positive": 135
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 22976
+        },
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 22977
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 22978
+        },
+        {
+          "localized_name": "Model",
+          "name": "model_family",
+          "type": "COMBO",
+          "widget": {
+            "name": "model_family"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "type": "STRING",
+          "widget": {
+            "name": "positive"
+          },
+          "link": 23001
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "type": "STRING",
+          "widget": {
+            "name": "negative"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Pin Model",
+          "name": "pin_model",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "pin_model"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Resize",
+          "name": "resize",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "resize"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "COMBO",
+          "widget": {
+            "name": "aspect_ratio"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Megapixels",
+          "name": "megapixels",
+          "type": "FLOAT",
+          "widget": {
+            "name": "megapixels"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Custom Width",
+          "name": "custom_width",
+          "type": "INT",
+          "widget": {
+            "name": "custom_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Custom Height",
+          "name": "custom_height",
+          "type": "INT",
+          "widget": {
+            "name": "custom_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Image Fit",
+          "name": "image_fit",
+          "type": "COMBO",
+          "widget": {
+            "name": "image_fit"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Outpaint Fill",
+          "name": "outpaint_fill",
+          "type": "COMBO",
+          "widget": {
+            "name": "outpaint_fill"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Slide",
+          "name": "slide",
+          "type": "FLOAT",
+          "widget": {
+            "name": "slide"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Bypass Reference",
+          "name": "bypass_reference",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "bypass_reference"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Reference Strength",
+          "name": "reference_strength",
+          "type": "INT",
+          "widget": {
+            "name": "reference_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Mask Expand",
+          "name": "mask_expand",
+          "type": "INT",
+          "widget": {
+            "name": "mask_expand"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Mask Blur",
+          "name": "mask_blur",
+          "type": "INT",
+          "widget": {
+            "name": "mask_blur"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Inpaint Blend",
+          "name": "inpaint_blend",
+          "type": "FLOAT",
+          "widget": {
+            "name": "inpaint_blend"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Use Detailing",
+          "name": "use_detailing",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "use_detailing"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Detail Padding",
+          "name": "detail_padding",
+          "type": "INT",
+          "widget": {
+            "name": "detail_padding"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Upsample Prompt",
+          "name": "upsample_prompt",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "upsample_prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Upsample Style",
+          "name": "upsample_style",
+          "type": "COMBO",
+          "widget": {
+            "name": "upsample_style"
+          },
+          "link": null
+        },
+        {
+          "name": "ref_images",
+          "type": "COMFY_AUTOGROW_V3",
+          "link": null
+        },
+        {
+          "label": "ref_0",
+          "localized_name": "ref_0",
+          "name": "ref_images.ref_0",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 22993
+        },
+        {
+          "label": "ref_1",
+          "localized_name": "ref_1",
+          "name": "ref_images.ref_1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 22994
+        },
+        {
+          "localized_name": "ref_2",
+          "name": "ref_images.ref_2",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        },
+        {
+          "localized_name": "boxes",
+          "name": "boxes",
+          "shape": 7,
+          "type": "NKD_KLEIN_BOXES",
+          "link": null
+        },
+        {
+          "localized_name": "upsampler",
+          "name": "upsampler",
+          "shape": 7,
+          "type": "CLIP",
+          "link": 22979
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            22987
+          ]
+        },
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            22972
+          ]
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": [
+            22973
+          ]
+        },
+        {
+          "localized_name": "latent",
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            22991
+          ]
+        },
+        {
+          "localized_name": "bundle",
+          "name": "bundle",
+          "type": "NKD_KLEIN_BUNDLE",
+          "links": [
+            22975
+          ]
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "links": []
+        },
+        {
+          "localized_name": "ref_0",
+          "name": "ref_0",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "widgets_values": [
+        "Klein 3",
+        "",
+        "",
+        "",
+        false,
+        true,
+        "As Reference",
+        1,
+        1024,
+        1024,
+        "Native",
+        "Gray",
+        0.5,
+        false,
+        0,
+        60,
+        30,
+        1,
+        false,
+        50,
+        true,
+        "Faithful",
+        ""
+      ],
+      "widgets_values_named": {
+        "model_family": "Klein 3",
+        "positive": "",
+        "negative": "",
+        "boxes_json": "",
+        "pin_model": false,
+        "resize": true,
+        "aspect_ratio": "As Reference",
+        "megapixels": 1,
+        "custom_width": 1024,
+        "custom_height": 1024,
+        "image_fit": "Native",
+        "outpaint_fill": "Gray",
+        "slide": 0.5,
+        "bypass_reference": false,
+        "reference_strength": 0,
+        "mask_expand": 60,
+        "mask_blur": 30,
+        "inpaint_blend": 1,
+        "use_detailing": false,
+        "detail_padding": 50,
+        "upsample_prompt": true,
+        "upsample_style": "Faithful",
+        "nkd_resolution": ""
+      }
+    },
+    {
+      "id": 1564,
+      "type": "ClownsharKSampler_Beta",
+      "pos": [
+        3855,
+        80
+      ],
+      "size": [
+        240.46636915695308,
+        782.6995537354296
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "ClownsharKSampler_Beta",
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        },
+        "aux_id": "drozbay/RES4LYF",
+        "ver": "3802390deff0d508e56a72dd21be4be99a52ff74"
+      },
+      "inputs": [
+        {
+          "localized_name": "eta",
+          "name": "eta",
+          "type": "FLOAT",
+          "widget": {
+            "name": "eta"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sampler_name",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scheduler",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps_to_run",
+          "name": "steps_to_run",
+          "type": "INT",
+          "widget": {
+            "name": "steps_to_run"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "denoise",
+          "name": "denoise",
+          "type": "FLOAT",
+          "widget": {
+            "name": "denoise"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sampler_mode",
+          "name": "sampler_mode",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "bongmath",
+          "name": "bongmath",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "bongmath"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "model",
+          "name": "model",
+          "shape": 7,
+          "type": "MODEL",
+          "link": 22988
+        },
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": 22972
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": 22973
+        },
+        {
+          "localized_name": "latent_image",
+          "name": "latent_image",
+          "shape": 7,
+          "type": "LATENT",
+          "link": 22990
+        },
+        {
+          "localized_name": "sigmas",
+          "name": "sigmas",
+          "shape": 7,
+          "type": "SIGMAS",
+          "link": null
+        },
+        {
+          "localized_name": "guides",
+          "name": "guides",
+          "shape": 7,
+          "type": "GUIDES",
+          "link": null
+        },
+        {
+          "name": "options_group",
+          "type": "COMFY_AUTOGROW_V3",
+          "link": null
+        },
+        {
+          "localized_name": "options0",
+          "name": "options_group.options0",
+          "shape": 7,
+          "type": "OPTIONS",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "output",
+          "name": "output",
+          "type": "LATENT",
+          "links": [
+            22982
+          ]
+        },
+        {
+          "localized_name": "denoised",
+          "name": "denoised",
+          "type": "LATENT",
+          "links": []
+        },
+        {
+          "localized_name": "options",
+          "name": "options",
+          "type": "OPTIONS",
+          "links": []
+        }
+      ],
+      "widgets_values": [
+        0.1,
+        "linear/euler",
+        "beta57",
+        16,
+        -1,
+        1,
+        1,
+        1,
+        "fixed",
+        "standard",
+        true
+      ],
+      "widgets_values_named": {
+        "eta": 0.1,
+        "sampler_name": "linear/euler",
+        "scheduler": "beta57",
+        "steps": 16,
+        "steps_to_run": -1,
+        "denoise": 1,
+        "cfg": 1,
+        "seed": 1,
+        "control_after_generate": "fixed",
+        "sampler_mode": "standard",
+        "bongmath": true
+      }
+    },
+    {
+      "id": 1565,
+      "type": "NKDKleinPostsampling",
+      "pos": [
+        4150,
+        140
+      ],
+      "size": [
+        243.822265625,
+        174
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "NKDKleinPostsampling",
+        "nkdSchema": 1,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        },
+        "cnr_id": "comfyui-nkd-klein-tools",
+        "ver": "047a9e69e0b106dff3be4c40c1ebb33017c8b90e",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 22983
+        },
+        {
+          "localized_name": "bundle",
+          "name": "bundle",
+          "type": "NKD_KLEIN_BUNDLE",
+          "link": 22975
+        },
+        {
+          "localized_name": "Uncrop Feather",
+          "name": "uncrop_feather",
+          "type": "INT",
+          "widget": {
+            "name": "uncrop_feather"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Match Original Colors",
+          "name": "match_original_colors",
+          "type": "FLOAT",
+          "widget": {
+            "name": "match_original_colors"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Seamless Edges",
+          "name": "seamless_edges",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "seamless_edges"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Auto-Detect Edit Region",
+          "name": "auto_detect_edit_region",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "auto_detect_edit_region"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Edge Softness",
+          "name": "edge_softness",
+          "type": "FLOAT",
+          "widget": {
+            "name": "edge_softness"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Region Padding",
+          "name": "region_padding",
+          "type": "FLOAT",
+          "widget": {
+            "name": "region_padding"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Fill Inner Gaps",
+          "name": "fill_inner_gaps",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "fill_inner_gaps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Remove Specks",
+          "name": "remove_specks",
+          "type": "FLOAT",
+          "widget": {
+            "name": "remove_specks"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Extend To Borders",
+          "name": "extend_to_borders",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "extend_to_borders"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Transparent Background",
+          "name": "transparent_background",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "transparent_background"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            22984
+          ]
+        },
+        {
+          "localized_name": "debug_difference",
+          "name": "debug_difference",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "widgets_values": [
+        10,
+        0,
+        false,
+        false,
+        2,
+        0,
+        true,
+        false,
+        true,
+        false
+      ],
+      "widgets_values_named": {
+        "uncrop_feather": 10,
+        "match_original_colors": 0,
+        "seamless_edges": false,
+        "auto_detect_edit_region": false,
+        "edge_softness": 2,
+        "region_padding": 0,
+        "fill_inner_gaps": true,
+        "remove_specks": false,
+        "extend_to_borders": true,
+        "transparent_background": false
+      }
+    },
+    {
+      "id": 1566,
+      "type": "VAEDecode",
+      "pos": [
+        4150,
+        110
+      ],
+      "size": [
+        140,
+        46
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 23,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "VAEDecode",
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "samples",
+          "name": "samples",
+          "type": "LATENT",
+          "link": 22982
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 22985
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            22983
+          ]
+        }
+      ]
+    },
+    {
+      "id": 1567,
+      "type": "NKDPopupPreviewNode",
+      "pos": [
+        4410,
+        140
+      ],
+      "size": [
+        510,
+        452.0566351550982
+      ],
+      "flags": {},
+      "order": 25,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "NKDPopupPreviewNode",
+        "nkdSchema": 2,
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 22984
+        },
+        {
+          "localized_name": "labels",
+          "name": "labels",
+          "type": "STRING",
+          "widget": {
+            "name": "labels"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "reference",
+          "name": "reference",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 22992
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        },
+        {
+          "localized_name": "filename_prefix",
+          "name": "filename_prefix",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "filename",
+          "name": "filename",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "filename"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "widgets_values": [
+        "%project%/%category%/",
+        "NKD",
+        false,
+        false,
+        "",
+        ""
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "%project%/%category%/",
+        "filename": "NKD",
+        "open_on_run": false,
+        "auto_save": false,
+        "nkd_popup": "",
+        "labels": ""
+      }
+    },
+    {
+      "id": 1568,
+      "type": "NKDKleinReferenceControl",
+      "pos": [
+        3560,
+        80
+      ],
+      "size": [
+        249.4419921875,
+        142
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "NKDKleinReferenceControl",
+        "nkdSchema": 1,
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 22987
+        },
+        {
+          "localized_name": "reference_index",
+          "name": "reference_index",
+          "type": "INT",
+          "widget": {
+            "name": "reference_index"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Strength",
+          "name": "weight",
+          "type": "FLOAT",
+          "widget": {
+            "name": "weight"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "region_weight",
+          "name": "region_weight",
+          "type": "FLOAT",
+          "widget": {
+            "name": "region_weight"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "outside_suppression",
+          "name": "outside_suppression",
+          "type": "FLOAT",
+          "widget": {
+            "name": "outside_suppression"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "region_hardness",
+          "name": "region_hardness",
+          "type": "FLOAT",
+          "widget": {
+            "name": "region_hardness"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "schedule",
+          "name": "schedule",
+          "shape": 7,
+          "type": "FLOAT",
+          "link": null
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        },
+        {
+          "localized_name": "latent",
+          "name": "latent",
+          "shape": 7,
+          "type": "LATENT",
+          "link": 22991
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            22988
+          ]
+        },
+        {
+          "localized_name": "latent",
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            22990
+          ]
+        }
+      ],
+      "widgets_values": [
+        1,
+        0.2,
+        1,
+        1,
+        0
+      ],
+      "widgets_values_named": {
+        "reference_index": 1,
+        "weight": 0.2,
+        "region_weight": 1,
+        "outside_suppression": 1,
+        "region_hardness": 0
+      },
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 1569,
+      "type": "NKDMaskPicker",
+      "pos": [
+        -573.703920594739,
+        140.56788903296567
+      ],
+      "size": [
+        447.38755915620504,
+        838
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "NKDMaskPicker",
+        "nkdSchema": 1,
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 22995
+        },
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 22996
+        },
+        {
+          "localized_name": "edges",
+          "name": "edges",
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "widget": {
+            "name": "edges"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "edge_margin",
+          "name": "edges.edge_margin",
+          "type": "FLOAT",
+          "widget": {
+            "name": "edges.edge_margin"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Points Only",
+          "name": "points_only",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "points_only"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Detail Level",
+          "name": "detail",
+          "type": "COMBO",
+          "widget": {
+            "name": "detail"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "combined mask",
+          "name": "combined mask",
+          "type": "MASK",
+          "links": [
+            22997,
+            22998,
+            22999
+          ]
+        },
+        {
+          "localized_name": "separated masks",
+          "name": "separated masks",
+          "type": "MASK",
+          "links": null
+        },
+        {
+          "localized_name": "bboxes",
+          "name": "bboxes",
+          "type": "BOUNDING_BOX",
+          "links": null
+        }
+      ],
+      "widgets_values": [
+        "vitmatte",
+        0.08,
+        false,
+        "normal",
+        "{\"picks\":[{\"x\":0.48438,\"y\":0.67188,\"level\":0,\"mode\":\"add\",\"group\":0}]}",
+        ""
+      ],
+      "widgets_values_named": {
+        "edges": "vitmatte",
+        "edges.edge_margin": 0.08,
+        "points_only": false,
+        "detail": "normal",
+        "selection": "{\"picks\":[{\"x\":0.48438,\"y\":0.67188,\"level\":0,\"mode\":\"add\",\"group\":0}]}",
+        "picker": ""
+      }
+    },
+    {
+      "id": 1570,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        -573.703920594739,
+        100.56788903296567
+      ],
+      "size": [
+        270,
+        98
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 3,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "CheckpointLoaderSimple",
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "ckpt_name",
+          "name": "ckpt_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "ckpt_name"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            22996
+          ]
+        },
+        {
+          "localized_name": "CLIP",
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": null
+        },
+        {
+          "localized_name": "VAE",
+          "name": "VAE",
+          "type": "VAE",
+          "links": null
+        }
+      ],
+      "widgets_values": [
+        "sam31INT8INT4Native_v10.safetensors"
+      ],
+      "widgets_values_named": {
+        "ckpt_name": "sam31INT8INT4Native_v10.safetensors"
+      }
+    },
+    {
+      "id": 1572,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        2980,
+        490
+      ],
+      "size": [
+        305,
+        100
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        },
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            23000
+          ]
+        }
+      ],
+      "title": "Custom extra prompt",
+      "widgets_values": [
+        "a man drinking a giant cup of coffee"
+      ],
+      "widgets_values_named": {
+        "value": "a man drinking a giant cup of coffee"
+      },
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 1573,
+      "type": "StringConcatenate",
+      "pos": [
+        2980,
+        240
+      ],
+      "size": [
+        305,
+        213.62749162983584
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        },
+        "Node name for S&R": "StringConcatenate"
+      },
+      "inputs": [
+        {
+          "localized_name": "string_a",
+          "name": "string_a",
+          "type": "STRING",
+          "widget": {
+            "name": "string_a"
+          },
+          "link": 23000
+        },
+        {
+          "localized_name": "string_b",
+          "name": "string_b",
+          "type": "STRING",
+          "widget": {
+            "name": "string_b"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "delimiter",
+          "name": "delimiter",
+          "type": "STRING",
+          "widget": {
+            "name": "delimiter"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            23001
+          ]
+        }
+      ],
+      "widgets_values": [
+        "",
+        "blend the object in <Picture 1> seamlessly, keeping the rotation lighting and shadows and using <Picture 2> as reference for likeness, color, style and realism.",
+        ", "
+      ],
+      "widgets_values_named": {
+        "string_a": "",
+        "string_b": "blend the object in <Picture 1> seamlessly, keeping the rotation lighting and shadows and using <Picture 2> as reference for likeness, color, style and realism.",
+        "delimiter": ", "
+      }
+    },
+    {
+      "id": 1574,
+      "type": "NKDHint",
+      "pos": [
+        3665,
+        270
+      ],
+      "size": [
+        28,
+        28
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "properties": {
+        "text": "Change this strenght if the original image gets to much protagonism",
+        "targets": [
+          {
+            "node": "1568",
+            "widget": "weight"
+          }
+        ],
+        "style": "info",
+        "step": 0,
+        "pinned": false,
+        "width": 300,
+        "min": "",
+        "max": "",
+        "texts": {}
+      },
+      "inputs": [],
+      "outputs": []
+    }
+  ],
+  "links": [
+    [
+      32,
+      1,
+      0,
+      14,
+      0,
+      "IMAGE"
+    ],
+    [
+      34,
+      14,
+      0,
+      16,
+      0,
+      "MESH"
+    ],
+    [
+      35,
+      15,
+      0,
+      16,
+      1,
+      "INT"
+    ],
+    [
+      36,
+      15,
+      1,
+      16,
+      2,
+      "INT"
+    ],
+    [
+      37,
+      14,
+      1,
+      16,
+      3,
+      "LOAD3D_CAMERA"
+    ],
+    [
+      39,
+      16,
+      0,
+      6,
+      0,
+      "IMAGE"
+    ],
+    [
+      40,
+      16,
+      1,
+      13,
+      0,
+      "IMAGE"
+    ],
+    [
+      22939,
+      1554,
+      0,
+      1552,
+      0,
+      "LATENT"
+    ],
+    [
+      22941,
+      1552,
+      0,
+      1553,
+      0,
+      "IMAGE"
+    ],
+    [
+      22942,
+      1555,
+      4,
+      1553,
+      1,
+      "NKD_KLEIN_BUNDLE"
+    ],
+    [
+      22948,
+      1557,
+      2,
+      1552,
+      1,
+      "VAE"
+    ],
+    [
+      22955,
+      1553,
+      0,
+      1559,
+      0,
+      "IMAGE"
+    ],
+    [
+      22961,
+      1559,
+      0,
+      1560,
+      1,
+      "IMAGE"
+    ],
+    [
+      22962,
+      1,
+      0,
+      1560,
+      2,
+      "IMAGE"
+    ],
+    [
+      22963,
+      1560,
+      0,
+      16,
+      4,
+      "IMAGE"
+    ],
+    [
+      22964,
+      1560,
+      0,
+      15,
+      0,
+      "IMAGE"
+    ],
+    [
+      22975,
+      1563,
+      4,
+      1565,
+      1,
+      "NKD_KLEIN_BUNDLE"
+    ],
+    [
+      22982,
+      1564,
+      0,
+      1566,
+      0,
+      "LATENT"
+    ],
+    [
+      22983,
+      1566,
+      0,
+      1565,
+      0,
+      "IMAGE"
+    ],
+    [
+      22984,
+      1565,
+      0,
+      1567,
+      0,
+      "IMAGE"
+    ],
+    [
+      22985,
+      1557,
+      2,
+      1566,
+      1,
+      "VAE"
+    ],
+    [
+      22987,
+      1563,
+      0,
+      1568,
+      0,
+      "MODEL"
+    ],
+    [
+      22991,
+      1563,
+      3,
+      1568,
+      8,
+      "LATENT"
+    ],
+    [
+      22992,
+      1,
+      0,
+      1567,
+      2,
+      "IMAGE"
+    ],
+    [
+      22997,
+      1569,
+      0,
+      14,
+      6,
+      "MASK"
+    ],
+    [
+      22998,
+      1569,
+      0,
+      1558,
+      0,
+      "MASK"
+    ],
+    [
+      22959,
+      1555,
+      0,
+      1554,
+      10,
+      "MODEL"
+    ],
+    [
+      22956,
+      1555,
+      1,
+      1554,
+      11,
+      "CONDITIONING"
+    ],
+    [
+      22957,
+      1555,
+      2,
+      1554,
+      12,
+      "CONDITIONING"
+    ],
+    [
+      22958,
+      1555,
+      3,
+      1554,
+      13,
+      "LATENT"
+    ],
+    [
+      22946,
+      1557,
+      0,
+      1555,
+      0,
+      "MODEL"
+    ],
+    [
+      22947,
+      1557,
+      1,
+      1555,
+      1,
+      "CLIP"
+    ],
+    [
+      22949,
+      1557,
+      2,
+      1555,
+      2,
+      "VAE"
+    ],
+    [
+      22951,
+      1,
+      0,
+      1555,
+      25,
+      "IMAGE"
+    ],
+    [
+      22999,
+      1569,
+      0,
+      1555,
+      27,
+      "MASK"
+    ],
+    [
+      22953,
+      1558,
+      0,
+      1555,
+      28,
+      "NKD_KLEIN_BOXES"
+    ],
+    [
+      22950,
+      1557,
+      3,
+      1555,
+      29,
+      "CLIP"
+    ],
+    [
+      22976,
+      1557,
+      0,
+      1563,
+      0,
+      "MODEL"
+    ],
+    [
+      22977,
+      1557,
+      1,
+      1563,
+      1,
+      "CLIP"
+    ],
+    [
+      22978,
+      1557,
+      2,
+      1563,
+      2,
+      "VAE"
+    ],
+    [
+      22979,
+      1557,
+      3,
+      1563,
+      30,
+      "CLIP"
+    ],
+    [
+      22993,
+      6,
+      0,
+      1563,
+      25,
+      "IMAGE"
+    ],
+    [
+      22994,
+      1,
+      0,
+      1563,
+      26,
+      "IMAGE"
+    ],
+    [
+      22988,
+      1568,
+      0,
+      1564,
+      10,
+      "MODEL"
+    ],
+    [
+      22972,
+      1563,
+      1,
+      1564,
+      11,
+      "CONDITIONING"
+    ],
+    [
+      22973,
+      1563,
+      2,
+      1564,
+      12,
+      "CONDITIONING"
+    ],
+    [
+      22990,
+      1568,
+      1,
+      1564,
+      13,
+      "LATENT"
+    ],
+    [
+      22995,
+      1,
+      0,
+      1569,
+      0,
+      "IMAGE"
+    ],
+    [
+      22996,
+      1570,
+      0,
+      1569,
+      1,
+      "MODEL"
+    ],
+    [
+      23000,
+      1572,
+      0,
+      1573,
+      0,
+      "STRING"
+    ],
+    [
+      23001,
+      1573,
+      0,
+      1563,
+      4,
+      "STRING"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 61,
+      "title": "Object Removal",
+      "bounding": [
+        11.203314045983753,
+        380.94039740312985,
+        1323.3921875,
+        820.0000000000001
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 62,
+      "title": "Cupid",
+      "bounding": [
+        979.682540097581,
+        50.532689040845646,
+        351.15939609668,
+        320.4077083622842
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 63,
+      "title": "Final Blend",
+      "bounding": [
+        2945,
+        10,
+        2010,
+        885
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 64,
+      "title": "3D Preview",
+      "bounding": [
+        1723.3344035381288,
+        10.033847848378898,
+        1180,
+        1190.906549554751
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 65,
+      "title": "Mask Picker",
+      "bounding": [
+        -583.703920594739,
+        30.567889032965667,
+        467.38755915620504,
+        974
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.948769797612715,
+      "offset": [
+        -691.9977719536888,
+        -171.08533817174455
+      ]
+    },
+    "ue_links": [],
+    "links_added_by_ue": [],
+    "reroutes": [
+      {
+        "id": 73,
+        "pos": [
+          -271.47980243809025,
+          1148.9402587344352
+        ],
+        "linkIds": [
+          22951
+        ]
+      },
+      {
+        "id": 74,
+        "pos": [
+          249.02308692726555,
+          152.53267362271117
+        ],
+        "linkIds": [
+          22997,
+          22999
+        ]
+      },
+      {
+        "id": 75,
+        "pos": [
+          1423.607272473718,
+          275.8581989796067
+        ],
+        "linkIds": [
+          34
+        ]
+      },
+      {
+        "id": 76,
+        "pos": [
+          1377.6951870451926,
+          92.01723910730749
+        ],
+        "linkIds": [
+          37
+        ]
+      },
+      {
+        "id": 77,
+        "pos": [
+          3225,
+          129
+        ],
+        "linkIds": [
+          22978,
+          22985
+        ]
+      }
+    ],
+    "linkExtensions": [
+      {
+        "id": 34,
+        "parentId": 75
+      },
+      {
+        "id": 37,
+        "parentId": 76
+      },
+      {
+        "id": 22985,
+        "parentId": 77
+      },
+      {
+        "id": 22997,
+        "parentId": 74
+      },
+      {
+        "id": 22951,
+        "parentId": 73
+      },
+      {
+        "id": 22999,
+        "parentId": 74
+      },
+      {
+        "id": 22978,
+        "parentId": 77
+      }
+    ],
+    "linkPresentation": {
+      "22976": {
+        "hidden": true
+      },
+      "22977": {
+        "hidden": true
+      },
+      "22978": {
+        "hidden": true
+      },
+      "22979": {
+        "hidden": true
+      },
+      "22985": {
+        "hidden": true
+      },
+      "22992": {
+        "hidden": true
+      },
+      "22994": {
+        "hidden": true
+      }
+    }
+  },
+  "version": 0.4
+}

@@ -1,0 +1,2157 @@
+{
+  "id": "5c9a1d74-2e08-4c3b-8f55-6b0e71a4d913",
+  "revision": 0,
+  "last_node_id": 1560,
+  "last_link_id": 22964,
+  "nodes": [
+    {
+      "id": 8,
+      "type": "Note",
+      "pos": [
+        -715,
+        570
+      ],
+      "size": [
+        460,
+        560
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "8.0.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "inputs": [],
+      "outputs": [],
+      "widgets_values": [
+        "CUPID3D ON A CLEANED PLATE\n\nReconstructs the subject in 3D and drops it back onto the same photo with the subject painted out, so it can be moved around the scene freely.\n\nNEEDS, BEYOND THIS PACK\n- ComfyUI-NKD-Klein-Tools — Klein Pre/Postsampling, Box Detections\n- ComfyUI-NKD-Basic-Tools — NKD Loader\n- ComfyUI-NKD-VFX-Tools — NKD Preview 3D\n- RES4LYF — ClownsharKSampler Beta\n- basic_data_handling — IfElse\nModels: birefnet.safetensors for Remove Background, and the \"Klein 3 Distilled\" bundle inside NKD Loader.\n\nTHE FLOW\n- Remove Background (BiRefNet) returns a FOREGROUND mask, so it feeds Cupid3D straight in. No InvertMask here — that is only needed for LoadImage's own MASK, which is 1 - alpha.\n- The Klein 3 pass reuses that same mask as a \"remove\" edit: it paints the subject out of the photo and leaves a clean plate.\n- IfElse picks what the viewer sits on — the cleaned plate (true) or the untouched photo (false). Whatever it picks also sets the render size through Get Image Size, so the camera and the plate can never disagree.\n- camera_info describes the input image exactly as it was fed in, so the plate needs no reframing.\n\nplace_on_ground puts the mesh on y=0, resting on the viewer's floor rather than straddling the origin; the camera moves with it. crop_to_content is off in this one, so the pose is solved on the full frame.\n\nSwap the photo for your own and the only thing to revisit is the Klein prompt and the box detections."
+      ],
+      "widgets_values_named": {
+        "text": "CUPID3D — one image in, a 3D mesh plus the camera that shot it.\n\nFirst run downloads ~7 GB of weights from hbb1/Cupid, then takes a minute or so. Peak VRAM is about 11.5 GB.\n\nWHY THE EXTRA NODES\n\n- InvertMask: LoadImage's MASK is 1 - alpha, so it marks the background. Cupid3D wants the subject. Segmentation nodes (RMBG, SAM) already give the subject, so they wire straight in with no InvertMask. With no mask at all, rembg removes the background itself.\n\n- GetImageSize -> RenderMesh width/height: Cupid predicts an off-centre principal point, and LOAD3D_CAMERA has no field for one, so the node pads the frame until that point is centred. 'camera_frame' is that padded frame, and it is what the camera describes. Render at its size and composite against it, not against the original image.\n\ncamera_info is a plain LOAD3D_CAMERA, so it also drives Preview3D, Load3D and the NKD VFX Tools camera nodes.\n\nThe mesh carries vertex colours, not a baked texture. For UVs and a texture, run it through UnwrapMesh and BakeTextureFromViews."
+      },
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [
+        -715,
+        119.99997693620554
+      ],
+      "size": [
+        370,
+        390
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "LoadImage",
+        "cnr_id": "comfy-core",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "8.0.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "choose file to upload",
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            11,
+            32,
+            22951,
+            22962
+          ]
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "widgets_values": [
+        "the-classic-mystery-machine-replica-van-built-by-jerry-news-photo-1587131341.jpg",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "the-classic-mystery-machine-replica-van-built-by-jerry-news-photo-1587131341.jpg",
+        "upload": "image"
+      }
+    },
+    {
+      "id": 6,
+      "type": "PreviewImage",
+      "pos": [
+        2466.661495243421,
+        80.0338478483789
+      ],
+      "size": [
+        435.1741112953366,
+        463.24810642841334
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "PreviewImage",
+        "cnr_id": "comfy-core",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "8.0.1",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 39
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "RemoveBackground",
+      "pos": [
+        -274.0758452455267,
+        168.53884642959864
+      ],
+      "size": [
+        273.4553050752338,
+        53.999999999999986
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 5,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "RemoveBackground",
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "bg_removal_model",
+          "name": "bg_removal_model",
+          "type": "BACKGROUND_REMOVAL",
+          "link": 12
+        },
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            25,
+            22952,
+            22954
+          ]
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "LoadBackgroundRemovalModel",
+      "pos": [
+        -274.0758452455267,
+        208.53884642959864
+      ],
+      "size": [
+        273.4553050752338,
+        69.82380997286451
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 2,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "LoadBackgroundRemovalModel",
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        }
+      },
+      "inputs": [
+        {
+          "localized_name": "bg_removal_name",
+          "name": "bg_removal_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "bg_removal_name"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "bg_model",
+          "name": "bg_model",
+          "type": "BACKGROUND_REMOVAL",
+          "links": [
+            12
+          ]
+        }
+      ],
+      "widgets_values": [
+        "birefnet.safetensors"
+      ],
+      "widgets_values_named": {
+        "bg_removal_name": "birefnet.safetensors"
+      }
+    },
+    {
+      "id": 13,
+      "type": "PreviewImage",
+      "pos": [
+        2466.661495243421,
+        583.2819542767922
+      ],
+      "size": [
+        435.1741112953366,
+        463.24810642841334
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "properties": {
+        "Node name for S&R": "PreviewImage",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "8.0.1",
+          "input_ue_unconnectable": {}
+        },
+        "cnr_id": "comfy-core"
+      },
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 40
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "Cupid3DReconstruct",
+      "pos": [
+        878.5752933605481,
+        120.53268904084567
+      ],
+      "size": [
+        330,
+        218
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "8.0.1",
+          "input_ue_unconnectable": {}
+        },
+        "Node name for S&R": "Cupid3DReconstruct"
+      },
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 32
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg_strength",
+          "name": "cfg_strength",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "crop_to_content",
+          "name": "crop_to_content",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "crop_to_content"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "place_on_ground",
+          "name": "place_on_ground",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "place_on_ground"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": 25
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "mesh",
+          "name": "mesh",
+          "type": "MESH",
+          "links": [
+            34
+          ]
+        },
+        {
+          "localized_name": "camera_info",
+          "name": "camera_info",
+          "type": "LOAD3D_CAMERA",
+          "links": [
+            37
+          ]
+        }
+      ],
+      "widgets_values": [
+        42,
+        "fixed",
+        25,
+        5,
+        false,
+        true
+      ],
+      "widgets_values_named": {
+        "seed": 42,
+        "control_after_generate": "fixed",
+        "steps": 25,
+        "cfg_strength": 5,
+        "crop_to_content": false,
+        "place_on_ground": true
+      }
+    },
+    {
+      "id": 15,
+      "type": "GetImageSize",
+      "pos": [
+        1684.639767477571,
+        311.79451669157487
+      ],
+      "size": [
+        270,
+        66
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 4,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        },
+        "Node name for S&R": "GetImageSize"
+      },
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 22964
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "width",
+          "name": "width",
+          "type": "INT",
+          "links": [
+            35
+          ]
+        },
+        {
+          "localized_name": "height",
+          "name": "height",
+          "type": "INT",
+          "links": [
+            36
+          ]
+        },
+        {
+          "localized_name": "batch_size",
+          "name": "batch_size",
+          "type": "INT",
+          "links": null
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "type": "NKDPreview3D",
+      "pos": [
+        1936.6004645825676,
+        80.05355146678212
+      ],
+      "size": [
+        488.4220044474946,
+        906
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        },
+        "Node name for S&R": "NKDPreview3D"
+      },
+      "inputs": [
+        {
+          "localized_name": "model_file",
+          "name": "model_file",
+          "type": "STRING,MESH,TRIMESH,FILE_3D_GLB,FILE_3D_GLTF,FILE_3D,FILE_3D_SPLAT_ANY,FILE_3D_PLY,FILE_3D_SPLAT,FILE_3D_SPZ,FILE_3D_KSPLAT",
+          "widget": {
+            "name": "model_file"
+          },
+          "link": 34
+        },
+        {
+          "localized_name": "width",
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 35
+        },
+        {
+          "localized_name": "height",
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 36
+        },
+        {
+          "localized_name": "camera_info",
+          "name": "camera_info",
+          "shape": 7,
+          "type": "LOAD3D_CAMERA",
+          "link": 37
+        },
+        {
+          "localized_name": "bg_image",
+          "name": "bg_image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 22963
+        },
+        {
+          "localized_name": "model_3d_info",
+          "name": "model_3d_info",
+          "shape": 7,
+          "type": "LOAD3D_MODEL_INFO",
+          "link": null
+        },
+        {
+          "localized_name": "mask3d",
+          "name": "mask3d",
+          "shape": 7,
+          "type": "NKD_MASK3D",
+          "link": null
+        },
+        {
+          "localized_name": "scene_depth",
+          "name": "scene_depth",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            39
+          ]
+        },
+        {
+          "localized_name": "object",
+          "name": "object",
+          "type": "IMAGE",
+          "links": [
+            40
+          ]
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "links": null
+        },
+        {
+          "localized_name": "depth",
+          "name": "depth",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "camera_info",
+          "name": "camera_info",
+          "type": "LOAD3D_CAMERA",
+          "links": null
+        },
+        {
+          "localized_name": "paint_mask",
+          "name": "paint_mask",
+          "type": "MASK",
+          "links": null
+        },
+        {
+          "localized_name": "mask3d",
+          "name": "mask3d",
+          "type": "NKD_MASK3D",
+          "links": null
+        },
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "FILE_3D",
+          "links": null
+        },
+        {
+          "localized_name": "model_3d_info",
+          "name": "model_3d_info",
+          "type": "LOAD3D_MODEL_INFO",
+          "links": null
+        }
+      ],
+      "widgets_values": [
+        "",
+        false,
+        1,
+        30,
+        "inverse (disparity)",
+        5184,
+        3456,
+        "",
+        "{\"showGrid\":true,\"floorClip\":true,\"pins\":[],\"pinLens\":true,\"ghost\":{\"on\":true,\"opacity\":0.35,\"detail\":0.5,\"back\":true},\"camLocked\":true,\"camera\":{\"position\":{\"x\":1.2987000085347982,\"y\":0.1657478889538062,\"z\":1.0251563805574189},\"target\":{\"x\":-0.009548939408761559,\"y\":0.28525782371886055,\"z\":0.015755384167919217},\"quaternion\":{\"x\":0.03216311143178912,\"y\":0.44082346841848835,\"z\":-0.016383868922289505,\"w\":0.8968677565804547},\"fov\":28.09568334693338,\"zoom\":1,\"cameraType\":\"perspective\",\"aspect\":1.5,\"near\":0.01,\"far\":10000},\"roll\":0.05927329856714975,\"camSlots\":[null,null,null,null],\"bgColor\":\"#111318\",\"showBg\":true,\"env\":1,\"lightAz\":-59,\"lightEl\":58,\"lightInt\":2,\"shadows\":true,\"shadowSoft\":3,\"shadowStr\":0.5,\"contact\":false,\"contactStr\":0.8,\"contactBlur\":1.5,\"contactSlab\":0.05,\"occlude\":false,\"occFrom\":0.5,\"occTo\":1,\"depthView\":false,\"showRange\":true,\"depthManual\":false,\"autoZ\":false,\"nearOff\":0,\"farOff\":0,\"dNear\":1,\"dFar\":30,\"depthInvert\":false,\"depthInverseSpace\":true,\"unbake\":false,\"smooth\":0,\"autoSmooth\":true,\"lights\":[],\"object\":{\"pos\":{\"x\":0,\"y\":0,\"z\":0},\"rot\":{\"x\":0,\"y\":0,\"z\":0},\"scale\":1,\"pivot\":\"bottom\",\"pivotC\":{\"x\":0,\"y\":0,\"z\":0},\"gizmoSpace\":\"world\",\"mirrorGuide\":\"none\",\"crop\":{\"on\":false,\"fitted\":false,\"pos\":[0,0,0],\"quat\":[0,0,0,1],\"half\":[1,1,1]}}}"
+      ],
+      "widgets_values_named": {
+        "model_file": "",
+        "scene_depth_invert": false,
+        "scene_depth_near": 1,
+        "scene_depth_far": 30,
+        "scene_depth_space": "inverse (disparity)",
+        "width": 5184,
+        "height": 3456,
+        "viewport": "",
+        "nkd_p3d_view": "{\"showGrid\":true,\"floorClip\":true,\"pins\":[],\"pinLens\":true,\"ghost\":{\"on\":true,\"opacity\":0.35,\"detail\":0.5,\"back\":true},\"camLocked\":true,\"camera\":{\"position\":{\"x\":1.2987000085347982,\"y\":0.1657478889538062,\"z\":1.0251563805574189},\"target\":{\"x\":-0.009548939408761559,\"y\":0.28525782371886055,\"z\":0.015755384167919217},\"quaternion\":{\"x\":0.03216311143178912,\"y\":0.44082346841848835,\"z\":-0.016383868922289505,\"w\":0.8968677565804547},\"fov\":28.09568334693338,\"zoom\":1,\"cameraType\":\"perspective\",\"aspect\":1.5,\"near\":0.01,\"far\":10000},\"roll\":0.05927329856714975,\"camSlots\":[null,null,null,null],\"bgColor\":\"#111318\",\"showBg\":true,\"env\":1,\"lightAz\":-59,\"lightEl\":58,\"lightInt\":2,\"shadows\":true,\"shadowSoft\":3,\"shadowStr\":0.5,\"contact\":false,\"contactStr\":0.8,\"contactBlur\":1.5,\"contactSlab\":0.05,\"occlude\":false,\"occFrom\":0.5,\"occTo\":1,\"depthView\":false,\"showRange\":true,\"depthManual\":false,\"autoZ\":false,\"nearOff\":0,\"farOff\":0,\"dNear\":1,\"dFar\":30,\"depthInvert\":false,\"depthInverseSpace\":true,\"unbake\":false,\"smooth\":0,\"autoSmooth\":true,\"lights\":[],\"object\":{\"pos\":{\"x\":0,\"y\":0,\"z\":0},\"rot\":{\"x\":0,\"y\":0,\"z\":0},\"scale\":1,\"pivot\":\"bottom\",\"pivotC\":{\"x\":0,\"y\":0,\"z\":0},\"gizmoSpace\":\"world\",\"mirrorGuide\":\"none\",\"crop\":{\"on\":false,\"fitted\":false,\"pos\":[0,0,0],\"quat\":[0,0,0,1],\"half\":[1,1,1]}}}"
+      }
+    },
+    {
+      "id": 1552,
+      "type": "VAEDecode",
+      "pos": [
+        825,
+        615
+      ],
+      "size": [
+        225,
+        50
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 10,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        },
+        "Node name for S&R": "VAEDecode",
+        "cnr_id": "comfy-core",
+        "ver": "0.19.3",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "inputs": [
+        {
+          "localized_name": "samples",
+          "name": "samples",
+          "type": "LATENT",
+          "link": 22939
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 22948
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            22941
+          ]
+        }
+      ]
+    },
+    {
+      "id": 1553,
+      "type": "NKDKleinPostsampling",
+      "pos": [
+        825,
+        645
+      ],
+      "size": [
+        243.822265625,
+        174
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        },
+        "Node name for S&R": "NKDKleinPostsampling",
+        "nkdSchema": 1,
+        "cnr_id": "comfyui-nkd-klein-tools",
+        "ver": "047a9e69e0b106dff3be4c40c1ebb33017c8b90e",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 22941
+        },
+        {
+          "localized_name": "bundle",
+          "name": "bundle",
+          "type": "NKD_KLEIN_BUNDLE",
+          "link": 22942
+        },
+        {
+          "localized_name": "Uncrop Feather",
+          "name": "uncrop_feather",
+          "type": "INT",
+          "widget": {
+            "name": "uncrop_feather"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Match Original Colors",
+          "name": "match_original_colors",
+          "type": "FLOAT",
+          "widget": {
+            "name": "match_original_colors"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Seamless Edges",
+          "name": "seamless_edges",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "seamless_edges"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Auto-Detect Edit Region",
+          "name": "auto_detect_edit_region",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "auto_detect_edit_region"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Edge Softness",
+          "name": "edge_softness",
+          "type": "FLOAT",
+          "widget": {
+            "name": "edge_softness"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Region Padding",
+          "name": "region_padding",
+          "type": "FLOAT",
+          "widget": {
+            "name": "region_padding"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Fill Inner Gaps",
+          "name": "fill_inner_gaps",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "fill_inner_gaps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Remove Specks",
+          "name": "remove_specks",
+          "type": "FLOAT",
+          "widget": {
+            "name": "remove_specks"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Extend To Borders",
+          "name": "extend_to_borders",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "extend_to_borders"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Transparent Background",
+          "name": "transparent_background",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "transparent_background"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            22955
+          ]
+        },
+        {
+          "localized_name": "debug_difference",
+          "name": "debug_difference",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "widgets_values": [
+        10,
+        0,
+        false,
+        false,
+        2,
+        0,
+        true,
+        false,
+        true,
+        false
+      ],
+      "widgets_values_named": {
+        "uncrop_feather": 10,
+        "match_original_colors": 0,
+        "seamless_edges": false,
+        "auto_detect_edit_region": false,
+        "edge_softness": 2,
+        "region_padding": 0,
+        "fill_inner_gaps": true,
+        "remove_specks": false,
+        "extend_to_borders": true,
+        "transparent_background": false
+      }
+    },
+    {
+      "id": 1554,
+      "type": "ClownsharKSampler_Beta",
+      "pos": [
+        565,
+        585
+      ],
+      "size": [
+        240.46636915695308,
+        598.9775794379688
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        },
+        "Node name for S&R": "ClownsharKSampler_Beta",
+        "aux_id": "drozbay/RES4LYF",
+        "ver": "3802390deff0d508e56a72dd21be4be99a52ff74"
+      },
+      "inputs": [
+        {
+          "localized_name": "eta",
+          "name": "eta",
+          "type": "FLOAT",
+          "widget": {
+            "name": "eta"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sampler_name",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scheduler",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps_to_run",
+          "name": "steps_to_run",
+          "type": "INT",
+          "widget": {
+            "name": "steps_to_run"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "denoise",
+          "name": "denoise",
+          "type": "FLOAT",
+          "widget": {
+            "name": "denoise"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sampler_mode",
+          "name": "sampler_mode",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "bongmath",
+          "name": "bongmath",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "bongmath"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "model",
+          "name": "model",
+          "shape": 7,
+          "type": "MODEL",
+          "link": 22959
+        },
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": 22956
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": 22957
+        },
+        {
+          "localized_name": "latent_image",
+          "name": "latent_image",
+          "shape": 7,
+          "type": "LATENT",
+          "link": 22958
+        },
+        {
+          "localized_name": "sigmas",
+          "name": "sigmas",
+          "shape": 7,
+          "type": "SIGMAS",
+          "link": null
+        },
+        {
+          "localized_name": "guides",
+          "name": "guides",
+          "shape": 7,
+          "type": "GUIDES",
+          "link": null
+        },
+        {
+          "name": "options_group",
+          "type": "COMFY_AUTOGROW_V3",
+          "link": null
+        },
+        {
+          "localized_name": "options0",
+          "name": "options_group.options0",
+          "shape": 7,
+          "type": "OPTIONS",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "output",
+          "name": "output",
+          "type": "LATENT",
+          "links": [
+            22939
+          ]
+        },
+        {
+          "localized_name": "denoised",
+          "name": "denoised",
+          "type": "LATENT",
+          "links": []
+        },
+        {
+          "localized_name": "options",
+          "name": "options",
+          "type": "OPTIONS",
+          "links": []
+        }
+      ],
+      "widgets_values": [
+        0.1,
+        "linear/euler",
+        "beta57",
+        16,
+        -1,
+        1,
+        1,
+        1,
+        "fixed",
+        "standard",
+        true
+      ],
+      "widgets_values_named": {
+        "eta": 0.1,
+        "sampler_name": "linear/euler",
+        "scheduler": "beta57",
+        "steps": 16,
+        "steps_to_run": -1,
+        "denoise": 1,
+        "cfg": 1,
+        "seed": 1,
+        "control_after_generate": "fixed",
+        "sampler_mode": "standard",
+        "bongmath": true
+      }
+    },
+    {
+      "id": 1555,
+      "type": "NKDKleinPresampling",
+      "pos": [
+        320,
+        585
+      ],
+      "size": [
+        211.5435546875,
+        642
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        },
+        "Node name for S&R": "NKDKleinPresampling",
+        "nkdSchema": 2,
+        "cnr_id": "comfyui-nkd-klein-tools",
+        "ver": "e02f203d42acad2b28e30194537124f8329ad9e7",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 22946
+        },
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 22947
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 22949
+        },
+        {
+          "localized_name": "Model",
+          "name": "model_family",
+          "type": "COMBO",
+          "widget": {
+            "name": "model_family"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "type": "STRING",
+          "widget": {
+            "name": "positive"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "type": "STRING",
+          "widget": {
+            "name": "negative"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Pin Model",
+          "name": "pin_model",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "pin_model"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Resize",
+          "name": "resize",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "resize"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "COMBO",
+          "widget": {
+            "name": "aspect_ratio"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Megapixels",
+          "name": "megapixels",
+          "type": "FLOAT",
+          "widget": {
+            "name": "megapixels"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Custom Width",
+          "name": "custom_width",
+          "type": "INT",
+          "widget": {
+            "name": "custom_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Custom Height",
+          "name": "custom_height",
+          "type": "INT",
+          "widget": {
+            "name": "custom_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Image Fit",
+          "name": "image_fit",
+          "type": "COMBO",
+          "widget": {
+            "name": "image_fit"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Outpaint Fill",
+          "name": "outpaint_fill",
+          "type": "COMBO",
+          "widget": {
+            "name": "outpaint_fill"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Slide",
+          "name": "slide",
+          "type": "FLOAT",
+          "widget": {
+            "name": "slide"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Bypass Reference",
+          "name": "bypass_reference",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "bypass_reference"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Reference Strength",
+          "name": "reference_strength",
+          "type": "INT",
+          "widget": {
+            "name": "reference_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Mask Expand",
+          "name": "mask_expand",
+          "type": "INT",
+          "widget": {
+            "name": "mask_expand"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Mask Blur",
+          "name": "mask_blur",
+          "type": "INT",
+          "widget": {
+            "name": "mask_blur"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Inpaint Blend",
+          "name": "inpaint_blend",
+          "type": "FLOAT",
+          "widget": {
+            "name": "inpaint_blend"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Use Detailing",
+          "name": "use_detailing",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "use_detailing"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Detail Padding",
+          "name": "detail_padding",
+          "type": "INT",
+          "widget": {
+            "name": "detail_padding"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Upsample Prompt",
+          "name": "upsample_prompt",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "upsample_prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "Upsample Style",
+          "name": "upsample_style",
+          "type": "COMBO",
+          "widget": {
+            "name": "upsample_style"
+          },
+          "link": null
+        },
+        {
+          "name": "ref_images",
+          "type": "COMFY_AUTOGROW_V3",
+          "link": null
+        },
+        {
+          "label": "ref_0",
+          "localized_name": "ref_0",
+          "name": "ref_images.ref_0",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 22951
+        },
+        {
+          "label": "ref_1",
+          "localized_name": "ref_1",
+          "name": "ref_images.ref_1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": 22952
+        },
+        {
+          "localized_name": "boxes",
+          "name": "boxes",
+          "shape": 7,
+          "type": "NKD_KLEIN_BOXES",
+          "link": 22953
+        },
+        {
+          "localized_name": "upsampler",
+          "name": "upsampler",
+          "shape": 7,
+          "type": "CLIP",
+          "link": 22950
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            22959
+          ]
+        },
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            22956
+          ]
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": [
+            22957
+          ]
+        },
+        {
+          "localized_name": "latent",
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            22958
+          ]
+        },
+        {
+          "localized_name": "bundle",
+          "name": "bundle",
+          "type": "NKD_KLEIN_BUNDLE",
+          "links": [
+            22942
+          ]
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "type": "MASK",
+          "links": []
+        },
+        {
+          "localized_name": "ref_0",
+          "name": "ref_0",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "widgets_values": [
+        "Klein 3",
+        "remove",
+        "",
+        "",
+        false,
+        true,
+        "As Reference",
+        1,
+        1024,
+        1024,
+        "Native",
+        "Gray",
+        0.5,
+        false,
+        0,
+        20,
+        10,
+        0,
+        false,
+        50,
+        true,
+        "Faithful",
+        ""
+      ],
+      "widgets_values_named": {
+        "model_family": "Klein 3",
+        "positive": "remove",
+        "negative": "",
+        "boxes_json": "",
+        "pin_model": false,
+        "resize": true,
+        "aspect_ratio": "As Reference",
+        "megapixels": 1,
+        "custom_width": 1024,
+        "custom_height": 1024,
+        "image_fit": "Native",
+        "outpaint_fill": "Gray",
+        "slide": 0.5,
+        "bypass_reference": false,
+        "reference_strength": 0,
+        "mask_expand": 20,
+        "mask_blur": 10,
+        "inpaint_blend": 0,
+        "use_detailing": false,
+        "detail_padding": 50,
+        "upsample_prompt": true,
+        "upsample_style": "Faithful",
+        "nkd_resolution": ""
+      }
+    },
+    {
+      "id": 1557,
+      "type": "NKDLoader",
+      "pos": [
+        10,
+        585
+      ],
+      "size": [
+        289.3921875,
+        118
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        },
+        "Node name for S&R": "NKDLoader",
+        "nkdSchema": 1
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "label": "model",
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            22946
+          ]
+        },
+        {
+          "label": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "links": [
+            22947
+          ]
+        },
+        {
+          "label": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "links": [
+            22948,
+            22949
+          ]
+        },
+        {
+          "label": "upsampler",
+          "name": "upsampler",
+          "type": "CLIP",
+          "links": [
+            22950
+          ]
+        }
+      ],
+      "title": "😺NKD Loader · Klein 3 Distilled",
+      "widgets_values": [
+        "{\"name\":\"Klein 3 Distilled\",\"nodes\":[{\"class_type\":\"CLIPLoader\",\"inputs\":{\"clip_name\":\"qwen3vl_4b_int8_convrot.safetensors\",\"type\":\"flux3\",\"device\":\"default\"}},{\"class_type\":\"UNETLoader\",\"inputs\":{\"unet_name\":\"flux3-klein\\\\flux3-image-klein-int8-convrot.safetensors\",\"weight_dtype\":\"default\"}},{\"class_type\":\"CLIPLoader\",\"inputs\":{\"clip_name\":\"qwen3.5_9b_flux3_prompt_upsampler_int8_convrot.safetensors\",\"type\":\"flux3\",\"device\":\"default\"}},{\"class_type\":\"VAELoader\",\"inputs\":{\"vae_name\":\"flux2-vae.safetensors\"}}],\"outputs\":[{\"node\":1,\"out\":0,\"type\":\"MODEL\",\"label\":\"model\"},{\"node\":0,\"out\":0,\"type\":\"CLIP\",\"label\":\"clip\"},{\"node\":3,\"out\":0,\"type\":\"VAE\",\"label\":\"vae\"},{\"node\":2,\"out\":0,\"type\":\"CLIP\",\"label\":\"upsampler\"}]}",
+        "Klein 3 Distilled"
+      ],
+      "widgets_values_named": {
+        "recipe": "{\"name\":\"Klein 3 Distilled\",\"nodes\":[{\"class_type\":\"CLIPLoader\",\"inputs\":{\"clip_name\":\"qwen3vl_4b_int8_convrot.safetensors\",\"type\":\"flux3\",\"device\":\"default\"}},{\"class_type\":\"UNETLoader\",\"inputs\":{\"unet_name\":\"flux3-klein\\\\flux3-image-klein-int8-convrot.safetensors\",\"weight_dtype\":\"default\"}},{\"class_type\":\"CLIPLoader\",\"inputs\":{\"clip_name\":\"qwen3.5_9b_flux3_prompt_upsampler_int8_convrot.safetensors\",\"type\":\"flux3\",\"device\":\"default\"}},{\"class_type\":\"VAELoader\",\"inputs\":{\"vae_name\":\"flux2-vae.safetensors\"}}],\"outputs\":[{\"node\":1,\"out\":0,\"type\":\"MODEL\",\"label\":\"model\"},{\"node\":0,\"out\":0,\"type\":\"CLIP\",\"label\":\"clip\"},{\"node\":3,\"out\":0,\"type\":\"VAE\",\"label\":\"vae\"},{\"node\":2,\"out\":0,\"type\":\"CLIP\",\"label\":\"upsampler\"}]}",
+        "preset": "Klein 3 Distilled"
+      }
+    },
+    {
+      "id": 1558,
+      "type": "NKDKleinBoxDetections",
+      "pos": [
+        10,
+        785
+      ],
+      "size": [
+        289.3921875,
+        150
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        },
+        "Node name for S&R": "NKDKleinBoxDetections"
+      },
+      "inputs": [
+        {
+          "localized_name": "detections",
+          "name": "detections",
+          "type": "MASK,BOUNDING_BOX,SEGS",
+          "link": 22954
+        },
+        {
+          "localized_name": "action",
+          "name": "action",
+          "type": "COMBO",
+          "widget": {
+            "name": "action"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "tag",
+          "name": "tag",
+          "type": "STRING",
+          "widget": {
+            "name": "tag"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "desc",
+          "name": "desc",
+          "type": "STRING",
+          "widget": {
+            "name": "desc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "boxes",
+          "name": "boxes",
+          "shape": 7,
+          "type": "NKD_KLEIN_BOXES",
+          "link": null
+        },
+        {
+          "localized_name": "reference",
+          "name": "reference",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "reference"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "boxes",
+          "name": "boxes",
+          "type": "NKD_KLEIN_BOXES",
+          "links": [
+            22953
+          ]
+        }
+      ],
+      "widgets_values": [
+        "remove",
+        "",
+        "",
+        0,
+        ""
+      ],
+      "widgets_values_named": {
+        "action": "remove",
+        "tag": "",
+        "desc": "",
+        "reference": 0,
+        "nkd_preview": ""
+      }
+    },
+    {
+      "id": 1559,
+      "type": "PreviewImage",
+      "pos": [
+        1090,
+        645
+      ],
+      "size": [
+        140,
+        26
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        },
+        "Node name for S&R": "PreviewImage"
+      },
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 22955
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            22961
+          ]
+        }
+      ]
+    },
+    {
+      "id": 1560,
+      "type": "Basic data handling: IfElse",
+      "pos": [
+        1360,
+        645
+      ],
+      "size": [
+        270,
+        78
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "properties": {
+        "ue_properties": {
+          "version": "8.0.1",
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "title_regex": null,
+          "input_regex": null,
+          "group_regex": null,
+          "title_regex_invert": false,
+          "input_regex_invert": false,
+          "group_regex_invert": false,
+          "apply_to_unrepeated": 0,
+          "send_to_any": 0,
+          "string_to_combo": 0,
+          "repeated_type_rule": 0,
+          "group_restricted": 0,
+          "color_restricted": 0
+        },
+        "Node name for S&R": "Basic data handling: IfElse"
+      },
+      "inputs": [
+        {
+          "localized_name": "condition",
+          "name": "condition",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "condition"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "if_true",
+          "name": "if_true",
+          "type": "*",
+          "link": 22961
+        },
+        {
+          "localized_name": "if_false",
+          "name": "if_false",
+          "type": "*",
+          "link": 22962
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "result",
+          "name": "result",
+          "type": "*",
+          "links": [
+            22963,
+            22964
+          ]
+        }
+      ],
+      "title": "Remove Object from Image",
+      "widgets_values": [
+        true
+      ],
+      "widgets_values_named": {
+        "condition": true
+      },
+      "color": "#432",
+      "bgcolor": "#653"
+    }
+  ],
+  "links": [
+    [
+      11,
+      1,
+      0,
+      9,
+      1,
+      "IMAGE"
+    ],
+    [
+      12,
+      10,
+      0,
+      9,
+      0,
+      "BACKGROUND_REMOVAL"
+    ],
+    [
+      25,
+      9,
+      0,
+      14,
+      6,
+      "MASK"
+    ],
+    [
+      32,
+      1,
+      0,
+      14,
+      0,
+      "IMAGE"
+    ],
+    [
+      34,
+      14,
+      0,
+      16,
+      0,
+      "MESH"
+    ],
+    [
+      35,
+      15,
+      0,
+      16,
+      1,
+      "INT"
+    ],
+    [
+      36,
+      15,
+      1,
+      16,
+      2,
+      "INT"
+    ],
+    [
+      37,
+      14,
+      1,
+      16,
+      3,
+      "LOAD3D_CAMERA"
+    ],
+    [
+      39,
+      16,
+      0,
+      6,
+      0,
+      "IMAGE"
+    ],
+    [
+      40,
+      16,
+      1,
+      13,
+      0,
+      "IMAGE"
+    ],
+    [
+      22939,
+      1554,
+      0,
+      1552,
+      0,
+      "LATENT"
+    ],
+    [
+      22941,
+      1552,
+      0,
+      1553,
+      0,
+      "IMAGE"
+    ],
+    [
+      22942,
+      1555,
+      4,
+      1553,
+      1,
+      "NKD_KLEIN_BUNDLE"
+    ],
+    [
+      22946,
+      1557,
+      0,
+      1555,
+      0,
+      "MODEL"
+    ],
+    [
+      22947,
+      1557,
+      1,
+      1555,
+      1,
+      "CLIP"
+    ],
+    [
+      22948,
+      1557,
+      2,
+      1552,
+      1,
+      "VAE"
+    ],
+    [
+      22949,
+      1557,
+      2,
+      1555,
+      2,
+      "VAE"
+    ],
+    [
+      22950,
+      1557,
+      3,
+      1555,
+      29,
+      "CLIP"
+    ],
+    [
+      22951,
+      1,
+      0,
+      1555,
+      25,
+      "IMAGE"
+    ],
+    [
+      22952,
+      9,
+      0,
+      1555,
+      27,
+      "MASK"
+    ],
+    [
+      22953,
+      1558,
+      0,
+      1555,
+      28,
+      "NKD_KLEIN_BOXES"
+    ],
+    [
+      22954,
+      9,
+      0,
+      1558,
+      0,
+      "MASK"
+    ],
+    [
+      22955,
+      1553,
+      0,
+      1559,
+      0,
+      "IMAGE"
+    ],
+    [
+      22956,
+      1555,
+      1,
+      1554,
+      11,
+      "CONDITIONING"
+    ],
+    [
+      22957,
+      1555,
+      2,
+      1554,
+      12,
+      "CONDITIONING"
+    ],
+    [
+      22958,
+      1555,
+      3,
+      1554,
+      13,
+      "LATENT"
+    ],
+    [
+      22959,
+      1555,
+      0,
+      1554,
+      10,
+      "MODEL"
+    ],
+    [
+      22961,
+      1559,
+      0,
+      1560,
+      1,
+      "IMAGE"
+    ],
+    [
+      22962,
+      1,
+      0,
+      1560,
+      2,
+      "IMAGE"
+    ],
+    [
+      22963,
+      1560,
+      0,
+      16,
+      4,
+      "IMAGE"
+    ],
+    [
+      22964,
+      1560,
+      0,
+      15,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 61,
+      "title": "Object Removal",
+      "bounding": [
+        0,
+        515,
+        1323.3921875,
+        820.0000000000001
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 62,
+      "title": "Cupid",
+      "bounding": [
+        868.5752933605481,
+        50.53268904084566,
+        350,
+        412
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.9487697976127114,
+      "offset": [
+        -892.4866613961597,
+        263.56510230893207
+      ]
+    },
+    "ue_links": [],
+    "links_added_by_ue": []
+  },
+  "version": 0.4
+}
