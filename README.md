@@ -1,4 +1,4 @@
-# ComfyUI-Cupid3D-WIP
+# ComfyUI-Cupid3D
 
 One image in, a 3D mesh and the camera that shot it out — a ComfyUI wrapper
 around [CUPID](https://github.com/cupid3d/Cupid) (CVPR'26).
