@@ -58,6 +58,10 @@ Linux only.
 
 All three open from **Templates** in the sidebar — search "Cupid".
 
+Each one loads an image from ComfyUI's own `input/` folder, so copy
+`assets/cupid_test_dragon.png` (from upstream's examples) there to run the first
+one as it ships, and point Load Image at your own photo for the other two.
+
 **Image to Mesh and Camera** — core nodes only. Reconstructs, then renders the
 mesh back through its own predicted camera so you can see the two agree.
 
