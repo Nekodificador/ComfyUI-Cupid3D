@@ -1,8 +1,8 @@
 {
   "id": "9e41b8c0-77d2-4a16-ae93-18c5f0b2d6a7",
   "revision": 0,
-  "last_node_id": 1574,
-  "last_link_id": 23001,
+  "last_node_id": 1586,
+  "last_link_id": 23003,
   "nodes": [
     {
       "id": 8,
@@ -28,10 +28,10 @@
       "inputs": [],
       "outputs": [],
       "widgets_values": [
-        "CUPID3D — ADVANCED SCENE INTEGRATION\n\nReconstructs the subject in 3D, puts it back into the photo it came from, and then has Klein 3 blend that render into the plate so it reads as a photograph rather than a paste-up.\n\nNEEDS, BEYOND THIS PACK\n- ComfyUI-NKD-Basic-Tools — NKD Loader, NKD Mask Picker\n- ComfyUI-NKD-Klein-Tools — Klein Pre/Postsampling, Box Detections, Reference Control\n- ComfyUI-NKD-VFX-Tools — NKD Preview 3D\n- ComfyUI-NKD-Preview-Tools — Popup Preview\n- ComfyUI-NKD-Notes — the hint pinned to Reference Control\n- RES4LYF — ClownsharKSampler Beta\n- basic_data_handling — IfElse\nModels: a SAM checkpoint for the Mask Picker, and the \"Klein 3 Distilled\" bundle inside NKD Loader.\n\nPICK THE SUBJECT FIRST\nNKD Mask Picker is where this starts: click the subject in the image and it returns one mask, which does three jobs — it is the subject for Cupid3D, the region for the removal edit, and the box for the detections. Nothing else needs touching to change subject.\n\nTWO KLEIN PASSES\n1. REMOVE — the same mask drives a \"remove the object\" edit that clears the subject off the photo and leaves a clean plate. IfElse picks that plate or the untouched photo, and whatever it picks also sets the viewer's size through Get Image Size, so camera and plate cannot disagree.\n\n2. BLEND — NKD Preview 3D renders the mesh over that plate through the predicted camera. Its render goes in as <Picture 1> and the untouched photo as <Picture 2>. The prompt is built by String Concatenate: describe the scene in the string node and the blend instruction is appended to it. Reference Control holds reference 1 — ref_1, the original photo — and its weight is the dial for how hard the blend pulls back towards the photo.\n\nThe result lands in Popup Preview with the original wired as its reference, so before and after sit side by side.\n\nplace_on_ground rests the mesh on y=0; crop_to_content is off here, so the pose is solved on the full frame."
+        "CUPID3D: ADVANCED SCENE INTEGRATION\n\nReconstructs the subject in 3D, puts it back into the photo it came from, and then has Klein 3 blend that render into the plate so it reads as a photograph rather than a paste-up.\n\nNEEDS, BEYOND THIS PACK\n- ComfyUI-NKD-Basic-Tools — NKD Loader, NKD Mask Picker\n- ComfyUI-NKD-Klein-Tools — Klein Pre/Postsampling, Box Detections, Reference Control\n- ComfyUI-NKD-VFX-Tools — NKD Preview 3D\n- ComfyUI-NKD-Preview-Tools — Popup Preview\n- ComfyUI-NKD-Notes — the hints and the guided tour\n- comfyui_controlnet_aux — AIO Aux Preprocessor, for the scene depth\n- RES4LYF — ClownsharKSampler Beta\nModels: a SAM checkpoint for the Mask Picker, and the \"Klein 3 Distilled\" bundle inside NKD Loader.\n\nPICK THE SUBJECT FIRST\nNKD Mask Picker is where this starts: click the subject in the image and it returns one mask, which does three jobs: it is the subject for Cupid3D, the region for the removal edit, and the box for the detections. Nothing else needs touching to change subject.\n\nTWO KLEIN PASSES\n1. REMOVE. The same mask drives a \"remove the object\" edit that clears the subject off the photo and leaves a clean plate. The If/Else Switch picks that plate or the untouched photo, and whatever it picks also sets the viewer's size through Get Image Size, so camera and plate cannot disagree. Depth Anything V2 turns that same plate into a depth map, which the viewer's occlude tab uses to tuck the mesh behind things already in the scene.\n\n2. BLEND. NKD Preview 3D renders the mesh over that plate through the predicted camera. Its render goes in as <Picture 1> and the untouched photo as <Picture 2>. The prompt sits in one string node: the blend instruction, with room in front of it to describe the scene. Reference Control holds reference 1 (ref_1, the original photo), and its weight is the dial for how hard the blend pulls back towards the photo.\n\nThe result lands in Popup Preview with the original wired as its reference, so before and after sit side by side.\n\nplace_on_ground rests the mesh on y=0; crop_to_content is off here, so the pose is solved on the full frame."
       ],
       "widgets_values_named": {
-        "text": "CUPID3D — one image in, a 3D mesh plus the camera that shot it.\n\nFirst run downloads ~7 GB of weights from hbb1/Cupid, then takes a minute or so. Peak VRAM is about 11.5 GB.\n\nWHY THE EXTRA NODES\n\n- InvertMask: LoadImage's MASK is 1 - alpha, so it marks the background. Cupid3D wants the subject. Segmentation nodes (RMBG, SAM) already give the subject, so they wire straight in with no InvertMask. With no mask at all, rembg removes the background itself.\n\n- GetImageSize -> RenderMesh width/height: Cupid predicts an off-centre principal point, and LOAD3D_CAMERA has no field for one, so the node pads the frame until that point is centred. 'camera_frame' is that padded frame, and it is what the camera describes. Render at its size and composite against it, not against the original image.\n\ncamera_info is a plain LOAD3D_CAMERA, so it also drives Preview3D, Load3D and the NKD VFX Tools camera nodes.\n\nThe mesh carries vertex colours, not a baked texture. For UVs and a texture, run it through UnwrapMesh and BakeTextureFromViews."
+        "text": "CUPID3D: ADVANCED SCENE INTEGRATION\n\nReconstructs the subject in 3D, puts it back into the photo it came from, and then has Klein 3 blend that render into the plate so it reads as a photograph rather than a paste-up.\n\nNEEDS, BEYOND THIS PACK\n- ComfyUI-NKD-Basic-Tools — NKD Loader, NKD Mask Picker\n- ComfyUI-NKD-Klein-Tools — Klein Pre/Postsampling, Box Detections, Reference Control\n- ComfyUI-NKD-VFX-Tools — NKD Preview 3D\n- ComfyUI-NKD-Preview-Tools — Popup Preview\n- ComfyUI-NKD-Notes — the hints and the guided tour\n- comfyui_controlnet_aux — AIO Aux Preprocessor, for the scene depth\n- RES4LYF — ClownsharKSampler Beta\nModels: a SAM checkpoint for the Mask Picker, and the \"Klein 3 Distilled\" bundle inside NKD Loader.\n\nPICK THE SUBJECT FIRST\nNKD Mask Picker is where this starts: click the subject in the image and it returns one mask, which does three jobs: it is the subject for Cupid3D, the region for the removal edit, and the box for the detections. Nothing else needs touching to change subject.\n\nTWO KLEIN PASSES\n1. REMOVE. The same mask drives a \"remove the object\" edit that clears the subject off the photo and leaves a clean plate. The If/Else Switch picks that plate or the untouched photo, and whatever it picks also sets the viewer's size through Get Image Size, so camera and plate cannot disagree. Depth Anything V2 turns that same plate into a depth map, which the viewer's occlude tab uses to tuck the mesh behind things already in the scene.\n\n2. BLEND. NKD Preview 3D renders the mesh over that plate through the predicted camera. Its render goes in as <Picture 1> and the untouched photo as <Picture 2>. The prompt sits in one string node: the blend instruction, with room in front of it to describe the scene. Reference Control holds reference 1 (ref_1, the original photo), and its weight is the dial for how hard the blend pulls back towards the photo.\n\nThe result lands in Popup Preview with the original wired as its reference, so before and after sit side by side.\n\nplace_on_ground rests the mesh on y=0; crop_to_content is off here, so the pose is solved on the full frame."
       },
       "color": "#432",
       "bgcolor": "#653"
@@ -472,7 +472,7 @@
           "name": "scene_depth",
           "shape": 7,
           "type": "IMAGE",
-          "link": null
+          "link": 23003
         }
       ],
       "outputs": [
@@ -1369,7 +1369,7 @@
       ],
       "widgets_values": [
         "Klein 3",
-        "remove the object or subject",
+        "remove the object or subject and its shadow and fill the gap with what's behind",
         "",
         "",
         false,
@@ -1394,7 +1394,7 @@
       ],
       "widgets_values_named": {
         "model_family": "Klein 3",
-        "positive": "remove the object or subject",
+        "positive": "remove the object or subject and its shadow and fill the gap with what's behind",
         "negative": "",
         "boxes_json": "",
         "pin_model": false,
@@ -1670,7 +1670,7 @@
     },
     {
       "id": 1560,
-      "type": "Basic data handling: IfElse",
+      "type": "ComfySwitchNode",
       "pos": [
         1417.8276894111698,
         99.99997417010727
@@ -1683,7 +1683,7 @@
       "order": 15,
       "mode": 0,
       "properties": {
-        "Node name for S&R": "Basic data handling: IfElse",
+        "Node name for S&R": "ComfySwitchNode",
         "ue_properties": {
           "version": "8.0.1",
           "widget_ue_connectable": {},
@@ -1704,35 +1704,36 @@
       },
       "inputs": [
         {
-          "localized_name": "condition",
-          "name": "condition",
+          "localized_name": "switch",
+          "name": "switch",
           "type": "BOOLEAN",
           "widget": {
-            "name": "condition"
+            "name": "switch"
           },
           "link": null
         },
         {
-          "localized_name": "if_true",
-          "name": "if_true",
-          "type": "*",
-          "link": 22961
+          "localized_name": "on_false",
+          "name": "on_false",
+          "type": "IMAGE",
+          "link": 22962
         },
         {
-          "localized_name": "if_false",
-          "name": "if_false",
-          "type": "*",
-          "link": 22962
+          "localized_name": "on_true",
+          "name": "on_true",
+          "type": "IMAGE",
+          "link": 22961
         }
       ],
       "outputs": [
         {
-          "localized_name": "result",
-          "name": "result",
-          "type": "*",
+          "localized_name": "output",
+          "name": "output",
+          "type": "IMAGE",
           "links": [
             22963,
-            22964
+            22964,
+            23002
           ]
         }
       ],
@@ -1741,7 +1742,7 @@
         true
       ],
       "widgets_values_named": {
-        "condition": true
+        "switch": true
       },
       "color": "#432",
       "bgcolor": "#653"
@@ -3081,11 +3082,11 @@
       "type": "PrimitiveStringMultiline",
       "pos": [
         2980,
-        490
+        240
       ],
       "size": [
-        305,
-        100
+        330,
+        190
       ],
       "flags": {},
       "order": 4,
@@ -3127,13 +3128,13 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            23000
+            23001
           ]
         }
       ],
-      "title": "Custom extra prompt",
+      "title": "Blend prompt",
       "widgets_values": [
-        "a man drinking a giant cup of coffee"
+        "blend the object in <Picture 1> seamlessly, keeping the rotation lighting and shadows and using <Picture 2> as reference for likeness, color, style and realism."
       ],
       "widgets_values_named": {
         "value": "a man drinking a giant cup of coffee"
@@ -3142,18 +3143,432 @@
       "bgcolor": "#353"
     },
     {
-      "id": 1573,
-      "type": "StringConcatenate",
+      "id": 1574,
+      "type": "NKDHint",
       "pos": [
-        2980,
-        240
+        3665,
+        270
       ],
       "size": [
-        305,
-        213.62749162983584
+        28,
+        28
       ],
       "flags": {},
-      "order": 7,
+      "order": 5,
+      "mode": 0,
+      "properties": {
+        "text": "# Reference Control\n\nRaise or lower `weight` if the original photo takes over the result, or the other way round if you need the render to stay closer to it.",
+        "targets": [
+          {
+            "node": "1568",
+            "widget": "weight"
+          }
+        ],
+        "style": "info",
+        "step": 10,
+        "pinned": false,
+        "width": 500,
+        "min": "",
+        "max": "",
+        "texts": {
+          "es": "# Reference Control\n\nSube o baja el `weight` si la foto original se lleva demasiado protagonismo en el resultado, o al contrario si necesitas que el render se parezca más a ella."
+        }
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": 1575,
+      "type": "NKDHint",
+      "pos": [
+        -1165,
+        83
+      ],
+      "size": [
+        28,
+        28
+      ],
+      "flags": {},
+      "order": 27,
+      "mode": 0,
+      "properties": {
+        "text": "# Load Image\n\nLoad the image you want to work on.",
+        "targets": [
+          {
+            "node": "1",
+            "widget": null
+          }
+        ],
+        "style": "info",
+        "step": 1,
+        "pinned": false,
+        "width": 500,
+        "min": "",
+        "max": "",
+        "texts": {
+          "es": "# Load Image\n\nCarga la imagen sobre la que quieres trabajar."
+        }
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": 1576,
+      "type": "NKDHint",
+      "pos": [
+        -612,
+        103
+      ],
+      "size": [
+        28,
+        28
+      ],
+      "flags": {},
+      "order": 28,
+      "mode": 0,
+      "properties": {
+        "text": "# NKD Mask Picker\n\nClick the subject and it hands you its mask. That same mask rebuilds the object in 3D, removes it from the photo and feeds the box detections, so to change subject you only have to click here again.",
+        "targets": [
+          {
+            "node": "1569",
+            "widget": null
+          }
+        ],
+        "style": "info",
+        "step": 2,
+        "pinned": false,
+        "width": 500,
+        "min": "",
+        "max": "",
+        "texts": {
+          "es": "# NKD Mask Picker\n\nHaz clic sobre el sujeto y te devuelve su máscara. La misma máscara reconstruye el objeto en 3D, lo borra de la foto y alimenta las cajas de detección, así que para cambiar de sujeto solo tienes que volver a hacer clic aquí."
+        }
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": 1577,
+      "type": "NKDHint",
+      "pos": [
+        952,
+        83
+      ],
+      "size": [
+        28,
+        28
+      ],
+      "flags": {},
+      "order": 29,
+      "mode": 0,
+      "properties": {
+        "text": "# Cupid3D Reconstruct\n\nRebuilds the subject in 3D and, along the way, works out the camera that took the photo.\n\n### `place_on_ground`\nLeaves the mesh resting on the viewer's floor instead of straddling the origin, so you can move it around the scene without repositioning it first. The camera moves with it, so the alignment with the photo holds.\n\n### `crop_to_content`\nOff here, so the pose is solved on the whole frame. Turn it on when the subject comes out small inside the image.\n\n### `steps` and `cfg_strength`\nBoth sampling stages use them. If the silhouette comes out wrong, check the mask before raising them: that is almost always where the problem is.",
+        "targets": [
+          {
+            "node": "14",
+            "widget": null
+          }
+        ],
+        "style": "info",
+        "step": 3,
+        "pinned": false,
+        "width": 500,
+        "min": "",
+        "max": "",
+        "texts": {
+          "es": "# Cupid3D Reconstruct\n\nReconstruye el sujeto en 3D y, de paso, calcula la cámara con la que se hizo la foto.\n\n### `place_on_ground`\nDeja la malla apoyada en el suelo del visor en vez de atravesada por el origen, para que puedas moverla por la escena sin recolocarla antes. La cámara se mueve con ella, así que la alineación con la foto no se pierde.\n\n### `crop_to_content`\nAquí está apagado, así que la pose se resuelve sobre el fotograma entero. Enciéndelo cuando el sujeto salga pequeño dentro de la imagen.\n\n### `steps` y `cfg_strength`\nValen para las dos etapas del muestreo. Si la silueta sale mal, antes de subirlos revisa la máscara: casi siempre el problema está ahí."
+        }
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": 1578,
+      "type": "NKDHint",
+      "pos": [
+        -16,
+        575
+      ],
+      "size": [
+        28,
+        28
+      ],
+      "flags": {},
+      "order": 30,
+      "mode": 0,
+      "properties": {
+        "text": "# Klein Box Detections\n\nTells Klein what is in the image and what to do with it. The action here is **remove**, so it marks the subject to be taken out of the photo.\n\nIf your object is complex and the model does not quite get it, describe it in `desc` so the prompt is built in more detail.",
+        "targets": [
+          {
+            "node": "1558",
+            "widget": null
+          }
+        ],
+        "style": "info",
+        "step": 4,
+        "pinned": false,
+        "width": 500,
+        "min": "",
+        "max": "",
+        "texts": {
+          "es": "# Klein Box Detections\n\nLe dice a Klein qué hay en la imagen y qué hacer con ello. Aquí la acción es **remove**, así que marca al sujeto para que desaparezca de la foto.\n\nSi tu objeto es algo complejo y el modelo no termina de entender, descríbelo en `desc` para que se construya el prompt de forma más detallada."
+        }
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": 1579,
+      "type": "NKDHint",
+      "pos": [
+        293,
+        413
+      ],
+      "size": [
+        28,
+        28
+      ],
+      "flags": {},
+      "order": 31,
+      "mode": 0,
+      "properties": {
+        "text": "# Klein Presampling: the removal\n\nThe prompt is already set up generically for an object removal, but remember you can fine-tune it for a better result. For example you can add something like `fill the gap with the people behind` if you have an object in front of people and need the model to rebuild them.\n\nIf the removal leaves a ghost or eats something it should not have, you can also adjust the mask to expand or blur it.",
+        "targets": [
+          {
+            "node": "1555",
+            "widget": "positive"
+          },
+          {
+            "node": "1555",
+            "widget": "mask_expand"
+          },
+          {
+            "node": "1555",
+            "widget": "mask_blur"
+          }
+        ],
+        "style": "info",
+        "step": 5,
+        "pinned": false,
+        "width": 500,
+        "min": "",
+        "max": "",
+        "texts": {
+          "es": "# Klein Presampling: el borrado\n\nEl prompt ya está preparado de forma general para hacer un object removal, pero recuerda que puedes afinarlo para obtener un mejor resultado. Por ejemplo puedes añadir algo como `fill the gap with the people behind` si tienes un objeto delante de personas y necesitas que el modelo las reconstruya.\n\nSi el borrado deja un fantasma o se come algo que no tocaba, también puedes ajustar la máscara para expandirla o desenfocarla."
+        }
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": 1580,
+      "type": "NKDHint",
+      "pos": [
+        1380,
+        62
+      ],
+      "size": [
+        28,
+        28
+      ],
+      "flags": {},
+      "order": 32,
+      "mode": 0,
+      "properties": {
+        "text": "# Remove Object from Image\n\nChooses whether the viewer gets the original image or a clean plate with the object removed.",
+        "targets": [
+          {
+            "node": "1560",
+            "widget": null
+          }
+        ],
+        "style": "info",
+        "step": 6,
+        "pinned": false,
+        "width": 500,
+        "min": "",
+        "max": "",
+        "texts": {
+          "es": "# Remove Object from Image\n\nDecide si quieres importar en el visor la imagen original o un cleanplate con el objeto/sujeto borrado."
+        }
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": 1581,
+      "type": "NKDHint",
+      "pos": [
+        1705,
+        42
+      ],
+      "size": [
+        28,
+        28
+      ],
+      "flags": {},
+      "order": 33,
+      "mode": 0,
+      "properties": {
+        "text": "# NKD Preview 3D\n\nPress `W`, `E` and `R` for the move, rotate and scale gizmos. Same as Maya.\n\n`Q` toggles between global and local.\n\nWith `Alt` you can change the position and rotation of the origin, depending on which gizmo is active. That lets you orient it better for more precise manipulations.\n\nI recommend the icon at the top left, which opens the viewer in a full-screen modal and is far more comfortable to work in.\n\nIn the occlude tab you can clip the object by its own depth, or put it behind objects in the scene if you have computed the scene depth beforehand.",
+        "targets": [
+          {
+            "node": "16",
+            "widget": null
+          }
+        ],
+        "style": "info",
+        "step": 7,
+        "pinned": false,
+        "width": 500,
+        "min": "",
+        "max": "",
+        "texts": {
+          "es": "# NKD Preview 3D\n\nUsa las teclas `W`, `E` y `R` para activar los gizmos de posición, rotación y escala. Como en Maya.\n\nCon `Q` alternas entre global y local.\n\nCon `Alt` puedes modificar la posición y rotación del origen, según el gizmo que tengas activado. Esto te permite orientarlo mejor para hacer manipulaciones más precisas.\n\nTe recomiendo pulsar el icono de arriba a la izquierda para abrir el visor en un modal a pantalla completa y trabajar de forma más cómoda.\n\nEn la pestaña de occlude, puedes recortar el objeto basado en su propia profundidad o colocarlo detrás de objetos de la escena si la has calculado previamente."
+        }
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": 1582,
+      "type": "NKDHint",
+      "pos": [
+        2942,
+        202
+      ],
+      "size": [
+        28,
+        28
+      ],
+      "flags": {},
+      "order": 34,
+      "mode": 0,
+      "properties": {
+        "text": "# Blend prompt\n\nThe prompt for the second pass, the one that blends the render into the photo. `<Picture 1>` is the image coming out of the viewer and `<Picture 2>` the original photo.\n\nWrite a sentence describing the scene in front of it if you want to steer the model more.",
+        "targets": [
+          {
+            "node": "1572",
+            "widget": null
+          }
+        ],
+        "style": "info",
+        "step": 8,
+        "pinned": false,
+        "width": 500,
+        "min": "",
+        "max": "",
+        "texts": {
+          "es": "# Blend prompt\n\nEl prompt del segundo pase, el que funde el render con la foto. `<Picture 1>` es la imagen que sale del visor y `<Picture 2>` la foto original.\n\nEscribe por delante una frase describiendo la escena si quieres guiar más al modelo."
+        }
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": 1583,
+      "type": "NKDHint",
+      "pos": [
+        3277,
+        42
+      ],
+      "size": [
+        28,
+        28
+      ],
+      "flags": {},
+      "order": 35,
+      "mode": 0,
+      "properties": {
+        "text": "# Klein Presampling: the blend\n\nThe second Klein pass. It takes the render from the viewer and blends it into the photograph so it does not read as a paste-up.\n\nNo mask and no boxes here: the whole image is reinterpreted.",
+        "targets": [
+          {
+            "node": "1563",
+            "widget": null
+          }
+        ],
+        "style": "info",
+        "step": 9,
+        "pinned": false,
+        "width": 500,
+        "min": "",
+        "max": "",
+        "texts": {
+          "es": "# Klein Presampling: la integración\n\nEl segundo pase de Klein, que coge el render del visor y lo funde con la fotografía para que no se lea como un pegote.\n\nAquí no hay máscara ni cajas: se reinterpreta la imagen entera."
+        }
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": 1584,
+      "type": "NKDHint",
+      "pos": [
+        4372,
+        102
+      ],
+      "size": [
+        28,
+        28
+      ],
+      "flags": {},
+      "order": 36,
+      "mode": 0,
+      "properties": {
+        "text": "# Popup Preview\n\nThe final result with the original photo wired in as its reference, so you can compare before and after without leaving the node.",
+        "targets": [
+          {
+            "node": "1567",
+            "widget": null
+          }
+        ],
+        "style": "info",
+        "step": 11,
+        "pinned": false,
+        "width": 500,
+        "min": "",
+        "max": "",
+        "texts": {
+          "es": "# Popup Preview\n\nEl resultado final con la foto original conectada como referencia, para comparar el antes y el después sin salir del nodo."
+        }
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": 1585,
+      "type": "NKDGuide",
+      "pos": [
+        -1127,
+        -69
+      ],
+      "size": [
+        240,
+        130
+      ],
+      "flags": {},
+      "order": 37,
+      "mode": 0,
+      "title": "Cupid3D: advanced integration",
+      "properties": {
+        "autoStart": true
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": 1586,
+      "type": "AIO_Preprocessor",
+      "pos": [
+        1611.851809375001,
+        159.9481404883958
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 38,
       "mode": 0,
       "properties": {
         "ue_properties": {
@@ -3173,90 +3588,32 @@
           "group_restricted": 0,
           "color_restricted": 0
         },
-        "Node name for S&R": "StringConcatenate"
+        "Node name for S&R": "AIO_Preprocessor"
       },
       "inputs": [
         {
-          "localized_name": "string_a",
-          "name": "string_a",
-          "type": "STRING",
-          "widget": {
-            "name": "string_a"
-          },
-          "link": 23000
-        },
-        {
-          "localized_name": "string_b",
-          "name": "string_b",
-          "type": "STRING",
-          "widget": {
-            "name": "string_b"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "delimiter",
-          "name": "delimiter",
-          "type": "STRING",
-          "widget": {
-            "name": "delimiter"
-          },
-          "link": null
+          "name": "image",
+          "type": "IMAGE",
+          "link": 23002
         }
       ],
       "outputs": [
         {
-          "localized_name": "STRING",
-          "name": "STRING",
-          "type": "STRING",
+          "name": "IMAGE",
+          "type": "IMAGE",
           "links": [
-            23001
+            23003
           ]
         }
       ],
       "widgets_values": [
-        "",
-        "blend the object in <Picture 1> seamlessly, keeping the rotation lighting and shadows and using <Picture 2> as reference for likeness, color, style and realism.",
-        ", "
+        "DepthAnythingV2Preprocessor",
+        1024
       ],
       "widgets_values_named": {
-        "string_a": "",
-        "string_b": "blend the object in <Picture 1> seamlessly, keeping the rotation lighting and shadows and using <Picture 2> as reference for likeness, color, style and realism.",
-        "delimiter": ", "
+        "preprocessor": "DepthAnythingV2Preprocessor",
+        "resolution": 1024
       }
-    },
-    {
-      "id": 1574,
-      "type": "NKDHint",
-      "pos": [
-        3665,
-        270
-      ],
-      "size": [
-        28,
-        28
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "properties": {
-        "text": "Change this strenght if the original image gets to much protagonism",
-        "targets": [
-          {
-            "node": "1568",
-            "widget": "weight"
-          }
-        ],
-        "style": "info",
-        "step": 0,
-        "pinned": false,
-        "width": 300,
-        "min": "",
-        "max": "",
-        "texts": {}
-      },
-      "inputs": [],
-      "outputs": []
     }
   ],
   "links": [
@@ -3361,7 +3718,7 @@
       1559,
       0,
       1560,
-      1,
+      2,
       "IMAGE"
     ],
     [
@@ -3369,7 +3726,7 @@
       1,
       0,
       1560,
-      2,
+      1,
       "IMAGE"
     ],
     [
@@ -3653,20 +4010,28 @@
       "MODEL"
     ],
     [
-      23000,
-      1572,
-      0,
-      1573,
-      0,
-      "STRING"
-    ],
-    [
       23001,
-      1573,
+      1572,
       0,
       1563,
       4,
       "STRING"
+    ],
+    [
+      23002,
+      1560,
+      0,
+      1586,
+      0,
+      "IMAGE"
+    ],
+    [
+      23003,
+      1586,
+      0,
+      16,
+      7,
+      "IMAGE"
     ]
   ],
   "groups": [

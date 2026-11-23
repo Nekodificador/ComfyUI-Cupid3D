@@ -95,8 +95,8 @@ the camera output is for, and they need:
 | [ComfyUI-NKD-VFX-Tools](https://github.com/Nekodificador/ComfyUI-NKD-VFX-Tools) | NKD Preview 3D, which puts the mesh over the plate |
 | [ComfyUI-NKD-Notes](https://github.com/Nekodificador/ComfyUI-NKD-Notes) | the hints pinned to the nodes |
 | [ComfyUI-NKD-Preview-Tools](https://github.com/Nekodificador/ComfyUI-NKD-Preview-Tools) | Popup Preview, advanced one only |
+| [comfyui_controlnet_aux](https://github.com/Fannovel16/comfyui_controlnet_aux) | Depth Anything V2, which gives the viewer the scene depth |
 | [RES4LYF](https://github.com/ClownsharkBatwing/RES4LYF) | ClownsharK KSampler Beta |
-| [Basic data handling](https://github.com/StableLlama/ComfyUI-basic_data_handling) | IfElse |
 
 Each one's Note lists the models it needs.
 
