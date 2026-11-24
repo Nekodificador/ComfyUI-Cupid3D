@@ -12,6 +12,7 @@ compile.
 | `cupid/modules/sparse/attention/{windowed,serialized,full}_attn.py` | An `sdpa` branch alongside the existing backends. |
 | `cupid/modules/{sparse,attention}/__init__.py` | `sdpa` is the default backend and a value the environment may select. |
 | `vox2seq_pkg/vox2seq/__init__.py` | Falls back to the pure-torch implementation that already ships beside the CUDA extension when that extension was never built. |
+| `cupid/pipelines/base.py` | Loads each model from the pipeline's own repo and lets a failure through. Upstream caught everything and retried the name on its own, which turned any error into a 404 for a repository that does not exist. |
 | `cupid/representations/mesh/flexicubes/flexicubes.py` | A local shape assertion in place of the one imported from kaolin. FlexiCubes keeps NVIDIA's licence in its own folder. |
 
 Net effect: flash-attn, xformers, kaolin, nvdiffrast, pytorch3d and
