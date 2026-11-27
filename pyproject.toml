@@ -1,0 +1,22 @@
+[build-system]
+requires = ["flit_core>=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "comfyui-cupid3d"
+version = "1.0.0"
+description = "One image in, a 3D mesh and the camera that shot it out. A ComfyUI wrapper around CUPID. Needs an NVIDIA GPU with CUDA 12.x."
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = [
+    "spconv-cu126",
+    "easydict",
+    "utils3d @ git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8",
+]
+
+[project.urls]
+Repository = "https://github.com/Nekodificador/ComfyUI-Cupid3D"
+
+[tool.comfy]
+PublisherId = "nekodificador"
+DisplayName = "Cupid3D"
